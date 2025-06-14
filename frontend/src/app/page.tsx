@@ -1,103 +1,91 @@
-import Image from "next/image";
+'use client'
+import React, { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { motion } from 'framer-motion'
+import { Header } from '@/components/layout/Header'
+import { Navigation } from '@/components/layout/Navigation'
+import { Welcome } from '@/components/onboarding/Welcome'
+import { HomeFeed } from '@/components/home/HomeFeed'
+import { TrendingFeed } from '@/components/home/TrendingFeed'
+import { CreateEconomy } from '@/components/creator/CreateEconomy'
+import { WalletPage } from '@/components/wallet/WalletPage'
+import { ProfilePage } from '@/components/profile/ProfilePage'
+import { useStore } from '@/stores/useStore'
+import { Economy } from '@/types'
+import { mockEconomies } from '@/lib/mockData'
+import toast from 'react-hot-toast'
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const { user, setEconomies } = useStore()
+  const [activeTab, setActiveTab] = useState('home')
+  const [isOnboardingComplete, setIsOnboardingComplete] = useState(!!user)
+  const router = useRouter()
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
+  useEffect(() => {
+    // Mock fetching economies
+    setEconomies(mockEconomies)
+  }, [setEconomies])
+
+  const handleOnboardingComplete = () => {
+    setIsOnboardingComplete(true)
+  }
+
+  const handleEconomySelect = (economy: Economy) => {
+    router.push(`/economy/${economy.id}`)
+    toast.success(`Exploring ${economy.name}!`, {
+      duration: 2000,
+      style: {
+        background: '#1F2937',
+        color: '#F3F4F6',
+        border: '1px solid #8B5CF6',
+      },
+    })
+  }
+
+  const handleEconomyCreated = () => {
+    setActiveTab('home')
+    toast.success('Your Vibe is live! Share it now!', {
+      duration: 3000,
+      style: {
+        background: '#1F2937',
+        color: '#F3F4F6',
+        border: '1px solid #8B5CF6',
+      },
+    })
+  }
+
+  if (!isOnboardingComplete) {
+    return <Welcome onComplete={handleOnboardingComplete} />
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="min-h-screen bg-gray-900"
+    >
+      <Header />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {activeTab === 'home' && (
+          <HomeFeed
+            economies={mockEconomies}
+            onEconomySelect={handleEconomySelect}
+          />
+        )}
+        {activeTab === 'trending' && (
+          <TrendingFeed
+            economies={mockEconomies}
+            onEconomySelect={handleEconomySelect}
+          />
+        )}
+        {activeTab === 'create' && (
+          <CreateEconomy onComplete={handleEconomyCreated} />
+        )}
+        {activeTab === 'wallet' && <WalletPage />}
+        {activeTab === 'profile' && <ProfilePage />}
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+      <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
+    </motion.div>
+  )
 }
