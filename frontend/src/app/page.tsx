@@ -5,9 +5,9 @@ import { motion } from 'framer-motion'
 import { Header } from '@/components/layout/Header'
 import { Navigation } from '@/components/layout/Navigation'
 import { Welcome } from '@/components/onboarding/Welcome'
-import { HomeFeed } from '@/components/home/HomeFeed'
+import HomeFeed from '@/components/home/HomeFeed'
 import { TrendingFeed } from '@/components/home/TrendingFeed'
-import { CreateEconomy } from '@/components/creator/CreateEconomy'
+import { CreatorCoinFrame } from '@/components/creator/CreateEconomy'
 import { WalletPage } from '@/components/wallet/WalletPage'
 import { ProfilePage } from '@/components/profile/ProfilePage'
 import { useStore } from '@/stores/useStore'
@@ -80,7 +80,7 @@ export default function Home() {
           />
         )}
         {activeTab === 'create' && (
-          <CreateEconomy onComplete={handleEconomyCreated} />
+          <CreatorCoinFrame onComplete={handleEconomyCreated} />
         )}
         {activeTab === 'wallet' && <WalletPage />}
         {activeTab === 'profile' && <ProfilePage />}

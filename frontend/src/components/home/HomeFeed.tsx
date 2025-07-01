@@ -1,216 +1,274 @@
+'use client'
 import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { EconomyCard } from './EconomyCard'
-import { Economy } from '@/types'
+import { useRouter } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Header } from '@/components/layout/Header'
+import { Navigation } from '@/components/layout/Navigation'
+import { Welcome } from '@/components/onboarding/Welcome'
+import HomeFeed  from '@/components/home/HomeFeed'
+import { TrendingFeed } from '@/components/home/TrendingFeed'
+import { CreatorCoinFrame } from '@/components/creator/CreateEconomy'
+import { WalletPage } from '@/components/wallet/WalletPage'
+import { ProfilePage } from '@/components/profile/ProfilePage'
 import { useStore } from '@/stores/useStore'
+import { Economy } from '@/types'
+import { mockEconomies } from '@/lib/mockData'
 import toast from 'react-hot-toast'
-import { Search, Filter, TrendingUp } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
-import { Loading } from '@/components/ui/Loading'
+import { Zap, Crown, FireExtinguisher } from 'lucide-react'
 
-interface HomeFeedProps {
-  economies: Economy[]
-  onEconomySelect: (economy: Economy) => void
-}
-
-export const HomeFeed: React.FC<HomeFeedProps> = ({
-  economies,
-  onEconomySelect,
-}) => {
-  const { user, addNFT, addTransaction } = useStore()
-  const [searchQuery, setSearchQuery] = useState('')
-  const [filter, setFilter] = useState<'all' | 'trending' | 'new'>('all')
-  const [filteredEconomies, setFilteredEconomies] = useState(economies)
+export default function Home() {
+  const { user, setEconomies } = useStore()
+  const [activeTab, setActiveTab] = useState('home')
+  const [isOnboardingComplete, setIsOnboardingComplete] = useState(!!user)
   const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
 
-  // Simulate loading state for demo
+  // Initialize app data
   useEffect(() => {
-    setIsLoading(true)
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 1000)
-    return () => clearTimeout(timer)
-  }, [])
+    const initializeApp = async () => {
+      try {
+        // Simulate loading app data
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        
+        // Set mock economies with enhanced V4 data
+        const enhancedEconomies = mockEconomies.map((economy, index) => ({
+          ...economy,
+          cultureScore: 1000 - (index * 100), // Ranking scores
+          cultureRank: index + 1,
+          creatorCoin: {
+            ...economy.creatorCoin,
+            version: 'v4' as const,
+            volume24h: Math.random() * 10000 + 1000,
+            priceChange24h: (Math.random() - 0.5) * 40, // -20% to +20%
+            holderCount: Math.floor(Math.random() * 500) + 50,
+            marketCap: economy.creatorCoin.currentPrice * economy.creatorCoin.totalSupply,
+            properties: {
+              category: 'social' as const,
+              creatorType: index % 2 === 0 ? 'gaming' : 'content' as any,
+              socialLinks: {
+                farcaster: `@${economy.creator.username.toLowerCase()}`,
+                twitter: `@${economy.creator.username.toLowerCase()}`
+              }
+            }
+          },
+          contentCoins: Array.from({ length: Math.floor(Math.random() * 5) + 1 }, (_, i) => ({
+            address: `0x${Math.random().toString(16).slice(2, 42)}`,
+            name: `${economy.creator.username}'s ${['Epic Win', 'Viral Moment', 'Behind Scenes', 'Tutorial', 'Collab'][i]} #${i + 1}`,
+            symbol: `${economy.creatorCoin.symbol}_${String(i + 1).padStart(3, '0')}`,
+            coinType: 'content' as const,
+            parentCreatorCoin: economy.creatorCoin.address,
+            parentCreator: economy.creator,
+            creator: economy.creator,
+            description: `Exclusive content from ${economy.creator.username}`,
+            image: economy.creatorCoin.image,
+            thumbnailURI: economy.creatorCoin.image,
+            uri: `ipfs://content-${i}`,
+            currentPrice: Math.random() * 0.01 + 0.001,
+            priceChange24h: (Math.random() - 0.5) * 60,
+            volume24h: Math.random() * 1000 + 100,
+            holderCount: Math.floor(Math.random() * 100) + 10,
+            viralityScore: Math.floor(Math.random() * 100) + 1,
+            speculationSentiment: ['bullish', 'bearish', 'neutral'][Math.floor(Math.random() * 3)] as any,
+            momentum: Math.floor(Math.random() * 100),
+            properties: {
+              category: 'content' as const,
+              contentType: ['video', 'meme', 'music', 'image'][Math.floor(Math.random() * 4)] as any,
+              parentCoin: economy.creatorCoin.address,
+              timestamp: Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000 // Last 7 days
+            },
+            contentURI: `ipfs://content-${i}`,
+            mimeType: 'video/mp4',
+            payoutSwapPath: {
+              currencyIn: `0x${Math.random().toString(16).slice(2, 42)}`,
+              path: [economy.creatorCoin.address, '0xZORA_ADDRESS']
+            },
+            totalSupply: 10000,
+            marketCap: 0,
+            avgHoldingTime: 0,
+            uniqueTraders24h: 0,
+            payoutRecipient: economy.creator.walletAddress!,
+            platformReferrer: 'CLP_PLATFORM',
+            currency: economy.creatorCoin.address,
+            poolKey: {} as any,
+            poolKeyHash: '',
+            version: 'v4' as const,
+            createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000),
+            lastTradeAt: new Date()
+          }))
+        }))
 
-  // Filter and search economies
-  useEffect(() => {
-    let result = economies
+        setEconomies(enhancedEconomies)
+        setIsLoading(false)
 
-    // Apply search
-    if (searchQuery) {
-      result = result.filter(
-        (economy) =>
-          economy.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          economy.creator.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          economy.tokenSymbol.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+        // Show welcome message for returning users
+        if (user) {
+          toast.success(
+            <div className="flex items-center">
+              <Zap className="w-5 h-5 mr-2 text-vibe-purple" />
+              <span>Welcome back to Vibe! V4 rewards are live 🚀</span>
+            </div>,
+            { duration: 3000 }
+          )
+        }
+
+      } catch (error) {
+        console.error('Failed to initialize app:', error)
+        setIsLoading(false)
+      }
     }
 
-    // Apply filter
-    if (filter === 'trending') {
-      result = result.sort((a, b) => b.liquidityPool - a.liquidityPool)
-    } else if (filter === 'new') {
-      result = result.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-    }
+    initializeApp()
+  }, [setEconomies, user])
 
-    setFilteredEconomies(result)
-  }, [searchQuery, filter, economies])
-
-  const handleMint = (economy: Economy) => {
-    if (!user) {
-      toast.error('Please login first!')
-      return
-    }
-
-    // Mock minting
-    const newNFT = {
-      id: Date.now().toString(),
-      economyId: economy.id,
-      title: `${economy.name} #${economy.nftsMinted + 1}`,
-      description: economy.description,
-      image: economy.image,
-      owner: user.username,
-      mintedAt: new Date(),
-    }
-
-    const transaction = {
-      id: Date.now().toString(),
-      type: 'mint' as const,
-      userId: user.id,
-      economyId: economy.id,
-      amount: 1,
-      tokenSymbol: 'NFT',
-      timestamp: new Date(),
-    }
-
-    addNFT(newNFT)
-    addTransaction(transaction)
-
+  const handleOnboardingComplete = () => {
+    setIsOnboardingComplete(true)
     toast.success(
       <div className="flex items-center">
-        <span className="animate-spin-slow mr-2">🎉</span>
-        You minted {economy.name}!
+        <Crown className="w-5 h-5 mr-2 text-vibe-purple" />
+        <div>
+          <p className="font-semibold">Welcome to Vibe! 🎉</p>
+          <p className="text-xs text-gray-400">Start trading Creator Coins with V4 rewards</p>
+        </div>
       </div>,
-      {
-        duration: 3000,
-        style: {
-          background: '#1F2937',
-          color: '#F3F4F6',
-          border: '1px solid #8B5CF6',
-        },
-      }
+      { duration: 4000 }
     )
   }
 
-  const handleJoin = (economy: Economy) => {
-    onEconomySelect(economy)
+  const handleEconomySelect = (economy: Economy) => {
+    router.push(`/economy/${economy.id}`)
+    toast.success(
+      <div className="flex items-center">
+        <FireExtinguisher className="w-5 h-5 mr-2 text-vibe-pink" />
+        <span>Exploring {economy.creator.username}'s economy!</span>
+      </div>,
+      { duration: 2000 }
+    )
   }
 
-  const handleFilterChange = (newFilter: 'all' | 'trending' | 'new') => {
-    setFilter(newFilter)
+  const handleEconomyCreated = () => {
+    setActiveTab('home')
+    toast.success(
+      <div className="flex items-center">
+        <Zap className="w-5 h-5 mr-2 text-vibe-green" />
+        <div>
+          <p className="font-semibold">Your Creator Coin is live! 🚀</p>
+          <p className="text-xs text-gray-400">V4 auto rewards activated • Share on Farcaster</p>
+        </div>
+      </div>,
+      { duration: 5000 }
+    )
+  }
+
+  // Show onboarding if user hasn't completed it
+  if (!isOnboardingComplete) {
+    return <Welcome onComplete={handleOnboardingComplete} />
+  }
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <motion.div
+          animate={{ 
+            rotate: 360,
+            scale: [1, 1.2, 1]
+          }}
+          transition={{ 
+            duration: 2, 
+            repeat: Infinity, 
+            ease: "easeInOut" 
+          }}
+          className="w-16 h-16 bg-gradient-vibe rounded-full flex items-center justify-center"
+        >
+          <span className="text-white font-bold text-2xl">V</span>
+        </motion.div>
+      </div>
+    )
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="text-center py-8"
-      >
-        <h1 className="text-3xl font-bold mb-4">
-          Discover{' '}
-          <span className="bg-gradient-vibe bg-clip-text text-transparent">
-            Economies
-          </span>
-        </h1>
-        <p className="text-gray-400">
-          Join creators, mint NFTs, and earn together!
-        </p>
-      </motion.div>
-
-      {/* Search and Filter */}
-      <Card className="p-4 sticky top-16 z-10 bg-gray-900/95 backdrop-blur-sm">
-        <div className="flex items-center space-x-2 mb-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search creators, economies, or tokens..."
-              className="w-full bg-gray-700 text-white rounded-lg pl-10 pr-4 py-2 focus:ring-2 focus:ring-vibe-purple focus:outline-none"
-              aria-label="Search economies"
-            />
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setFilter(filter === 'all' ? 'trending' : 'all')}
-            className="flex items-center"
-          >
-            <Filter className="w-4 h-4 mr-1" />
-            {filter.charAt(0).toUpperCase() + filter.slice(1)}
-          </Button>
-        </div>
-        <div className="flex space-x-2">
-          {['all', 'trending', 'new'].map((f) => (
-            <Button
-              key={f}
-              variant={filter === f ? 'primary' : 'secondary'}
-              size="sm"
-              onClick={() => handleFilterChange(f as 'all' | 'trending' | 'new')}
-              className="flex-1"
-            >
-              {f === 'trending' && <TrendingUp className="w-4 h-4 mr-1" />}
-              {f.charAt(0).toUpperCase() + f.slice(1)}
-            </Button>
-          ))}
-        </div>
-      </Card>
-
-      {/* Economy List */}
-      {isLoading ? (
-        <Loading />
-      ) : filteredEconomies.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center py-12"
-        >
-          <p className="text-gray-400 text-lg">
-            No economies found. Try a different search or filter!
-          </p>
-        </motion.div>
-      ) : (
-        <div className="space-y-6">
-          {filteredEconomies.map((economy, index) => (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="min-h-screen bg-gray-900 text-white"
+    >
+      {/* Header - Only show on certain tabs */}
+      {!['create', 'wallet', 'profile'].includes(activeTab) && <Header />}
+      
+      {/* Main Content */}
+      <main className="pb-20"> {/* Bottom padding for navigation */}
+        <AnimatePresence mode="wait">
+          {activeTab === 'home' && (
             <motion.div
-              key={economy.id}
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1, duration: 0.5 }}
+              key="home"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
             >
-              <EconomyCard
-                economy={economy}
-                onMint={() => handleMint(economy)}
-                onJoin={() => handleJoin(economy)}
+              <HomeFeed
+                economies={mockEconomies}
+                onEconomySelect={handleEconomySelect}
               />
-              {/* Trending Indicator */}
-              {filter === 'trending' && index < 3 && (
-                <div className="flex items-center justify-center mt-2">
-                  <TrendingUp className="w-4 h-4 text-vibe-pink mr-1" />
-                  <span className="text-sm text-vibe-pink font-semibold">
-                    Top {index + 1} Trending
-                  </span>
-                </div>
-              )}
             </motion.div>
-          ))}
-        </div>
-      )}
-    </div>
+          )}
+
+          {activeTab === 'trending' && (
+            <motion.div
+              key="trending"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <TrendingFeed
+                economies={mockEconomies}
+                onEconomySelect={handleEconomySelect}
+              />
+            </motion.div>
+          )}
+
+          {activeTab === 'create' && (
+            <motion.div
+              key="create"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <CreatorCoinFrame onComplete={handleEconomyCreated} />
+            </motion.div>
+          )}
+
+          {activeTab === 'wallet' && (
+            <motion.div
+              key="wallet"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <WalletPage />
+            </motion.div>
+          )}
+
+          {activeTab === 'profile' && (
+            <motion.div
+              key="profile"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <ProfilePage />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </main>
+
+      {/* Bottom Navigation */}
+      <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
+    </motion.div>
   )
 }

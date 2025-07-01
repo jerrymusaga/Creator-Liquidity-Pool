@@ -7,6 +7,7 @@ export interface User {
 }
 
 export interface Economy {
+  creatorCoin: any;
   id: string;
   creator: User;
   name: string;
@@ -22,15 +23,6 @@ export interface Economy {
   createdAt: Date;
 }
 
-export interface NFT {
-  id: string;
-  economyId: string;
-  title: string;
-  description: string;
-  image: string;
-  owner: string;
-  mintedAt: Date;
-}
 
 export interface Transaction {
   id: string;
