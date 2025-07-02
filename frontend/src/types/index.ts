@@ -5,6 +5,16 @@ export interface User {
   isCreator: boolean;
   walletAddress?: string;
   farcasterHandle?: string;
+  bio?: string;
+  followers?: number;
+  following?: number;
+  categories?: CreatorCategory[];
+  socialLinks?: {
+    twitter?: string;
+    farcaster?: string;
+    website?: string;
+  };
+  verificationStatus?: 'verified' | 'pending' | 'unverified';
 }
 
 export interface ZoraCoin {
@@ -135,4 +145,42 @@ export interface NFT {
   tokenId: string
   contractAddress: string
   owner: string
+}
+
+export interface CreatorCategory {
+  id: string
+  name: string
+  description: string
+  color: string
+  icon: string
+}
+
+export interface CreatorSpotlight {
+  creator: User
+  coin: CreatorCoin
+  reason: string
+  spotlightType: 'rising_star' | 'top_performer' | 'new_talent' | 'featured'
+  metrics: {
+    growthRate: number
+    volumeIncrease: number
+    holderGrowth: number
+  }
+}
+
+export interface UserFollow {
+  followerId: string
+  followingId: string
+  createdAt: Date
+}
+
+export interface CoinComment {
+  id: string
+  coinAddress: string
+  userId: string
+  user: User
+  content: string
+  createdAt: Date
+  likes: number
+  replies?: CoinComment[]
+  parentId?: string
 }

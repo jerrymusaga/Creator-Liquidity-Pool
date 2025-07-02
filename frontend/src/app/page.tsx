@@ -5,7 +5,8 @@ import { motion } from 'framer-motion'
 import { Header } from '@/components/layout/Header'
 import { Navigation } from '@/components/layout/Navigation'
 import { Welcome } from '@/components/onboarding/Welcome'
-import { LiveCoinsFeed } from '@/components/home/LiveCoinsFeeds'
+import { PersonalizedHomeFeed } from '@/components/home/PersonalizedHomeFeed'
+import { EnhancedTrendingFeed } from '@/components/home/EnhancedTrendingFeed'
 import { RealCreateEconomy } from '@/components/creator/RealCreateEconomy'
 import { WalletPage } from '@/components/wallet/WalletPage'
 import { ProfilePage } from '@/components/profile/ProfilePage'
@@ -72,10 +73,10 @@ export default function Home() {
       <Header />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {activeTab === 'home' && (
-          <LiveCoinsFeed onCoinSelect={handleCoinSelect} />
+          <PersonalizedHomeFeed onCoinSelect={handleCoinSelect} />
         )}
         {activeTab === 'trending' && (
-          <LiveCoinsFeed onCoinSelect={handleCoinSelect} />
+          <EnhancedTrendingFeed onCoinSelect={handleCoinSelect} />
         )}
         {activeTab === 'create' && (
           <RealCreateEconomy onComplete={handleCoinCreated} />
