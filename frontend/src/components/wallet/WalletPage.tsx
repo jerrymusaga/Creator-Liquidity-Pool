@@ -9,14 +9,23 @@ import {
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { useStore } from '@/stores/useStore'
-import { CoinHolding, V4Transaction, LiquidityPosition } from '@/types'
+import { useUserProfile, usePortfolioValue } from '@/hooks/useZoraProfile'
+import { useWallet } from '@/hooks/useWallet'
+import { CoinHolding, V4Transaction } from '@/types'
 
 export const WalletPage: React.FC = () => {
-  const { user, coinHoldings = [], transactions = [] } = useStore()
+  const { user } = useStore()
+  const { address, isConnected, connectWallet } = useWallet()
+  const { holdings, transactions } = useUserProfile(address)
+  const { data: portfolioValue } = usePortfolioValue(address)
   const [activeTab, setActiveTab] = useState<'holdings' | 'transactions' | 'rewards'>('holdings')
   const [showBalances, setShowBalances] = useState(true)
 
-  if (!user) {
+  // Use real data from hooks, fallback to empty arrays
+  const coinHoldings = holdings.data || []
+  const userTransactions = transactions.data || []
+
+  if (!isConnected) {
     return (
       <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-4">
         <Card className="p-8 text-center max-w-sm w-full">
@@ -25,7 +34,7 @@ export const WalletPage: React.FC = () => {
           <p className="text-gray-400 mb-6">
             Connect your wallet to view your Creator Coin portfolio
           </p>
-          <Button className="w-full">
+          <Button onClick={connectWallet} className="w-full">
             Connect Wallet
           </Button>
         </Card>
@@ -34,23 +43,24 @@ export const WalletPage: React.FC = () => {
   }
 
   // Calculate portfolio totals
-  const totalPortfolioValue = coinHoldings?.reduce((sum, holding) => sum + holding.currentValue, 0) || 0
-  const totalPnL = coinHoldings?.reduce((sum, holding) => sum + holding.unrealizedPnL, 0) || 0
+  const totalPortfolioValue = portfolioValue || 0
+  const totalPnL = coinHoldings?.reduce((sum: number, holding: any) => sum + (holding.unrealizedPnL || 0), 0) || 0
   const totalPnLPercent = totalPortfolioValue > 0 ? (totalPnL / (totalPortfolioValue - totalPnL)) * 100 : 0
 
   // Get recent transactions
-  const recentTransactions = transactions
-    ?.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+  const recentTransactions = userTransactions
+    ?.sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
     ?.slice(0, 10) || []
 
   // Calculate today's rewards from V4
   const todayRewards = recentTransactions
-    ?.filter(tx => {
+    ?.filter((tx: any) => {
       const today = new Date()
       today.setHours(0, 0, 0, 0)
-      return tx.timestamp >= today && (tx.type === 'buy' || tx.type === 'sell')
+      const txDate = new Date(tx.timestamp)
+      return txDate >= today && (tx.type === 'buy' || tx.type === 'sell')
     })
-    ?.reduce((sum, tx) => sum + (tx.tradeReferralReward || 0), 0) || 0
+    ?.reduce((sum: number, tx: any) => sum + (tx.tradeReferralReward || 0), 0) || 0
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">

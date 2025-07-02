@@ -2,7 +2,13 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import { Web3Provider } from "@/providers/Web3Providers"; 
+import { initializeZoraSDK } from "@/config/zora";
 import "./globals.css";
+
+// Initialize Zora SDK on app start
+if (typeof window !== 'undefined') {
+  initializeZoraSDK();
+}
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

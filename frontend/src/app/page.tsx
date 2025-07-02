@@ -6,33 +6,37 @@ import { Header } from '@/components/layout/Header'
 import { Navigation } from '@/components/layout/Navigation'
 import { Welcome } from '@/components/onboarding/Welcome'
 import { LiveCoinsFeed } from '@/components/home/LiveCoinsFeeds'
-import { TrendingFeed } from '@/components/home/TrendingFeed'
 import { RealCreateEconomy } from '@/components/creator/RealCreateEconomy'
 import { WalletPage } from '@/components/wallet/WalletPage'
 import { ProfilePage } from '@/components/profile/ProfilePage'
 import { useStore } from '@/stores/useStore'
-import { Economy } from '@/types'
-import { mockEconomies } from '@/lib/mockData'
+import { useDashboardCoins } from '@/hooks/useZoraCoins'
+import { useWallet } from '@/hooks/useWallet'
 import toast from 'react-hot-toast'
 
 export default function Home() {
-  const { user, setEconomies } = useStore()
+  const { user } = useStore()
+  const { isConnected } = useWallet()
+  const { topVolume, newCoins, isLoading } = useDashboardCoins()
   const [activeTab, setActiveTab] = useState('home')
-  const [isOnboardingComplete, setIsOnboardingComplete] = useState(!!user)
+  const [isOnboardingComplete, setIsOnboardingComplete] = useState(true) // Skip onboarding for now
   const router = useRouter()
 
+  // Load Zora data on mount
   useEffect(() => {
-    // Mock fetching economies
-    setEconomies(mockEconomies)
-  }, [setEconomies])
+    if (isConnected) {
+      // Data is automatically loaded by the hooks
+      console.log('Zora data loading...', { topVolume: topVolume.data, newCoins: newCoins.data })
+    }
+  }, [isConnected, topVolume.data, newCoins.data])
 
   const handleOnboardingComplete = () => {
     setIsOnboardingComplete(true)
   }
 
-  const handleEconomySelect = (economy: Economy) => {
-    router.push(`/economy/${economy.id}`)
-    toast.success(`Exploring ${economy.name}!`, {
+  const handleCoinSelect = (coinAddress: string) => {
+    // Navigate to coin detail page or show coin info
+    toast.success(`Exploring coin ${coinAddress}!`, {
       duration: 2000,
       style: {
         background: '#1F2937',
@@ -42,14 +46,14 @@ export default function Home() {
     })
   }
 
-  const handleEconomyCreated = () => {
+  const handleCoinCreated = () => {
     setActiveTab('home')
-    toast.success('Your Vibe is live! Share it now!', {
+    toast.success('Your Creator Coin is live! 🚀', {
       duration: 3000,
       style: {
         background: '#1F2937',
         color: '#F3F4F6',
-        border: '1px solid #8B5CF6',
+        border: '1px solid #10B981',
       },
     })
   }
@@ -68,25 +72,13 @@ export default function Home() {
       <Header />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {activeTab === 'home' && (
-          <LiveCoinsFeed
-            onCoinSelect={(coinAddress: string) => {
-              const economy = mockEconomies.find(e => e.id === coinAddress)
-              if (economy) {
-                handleEconomySelect(economy)
-              } else {
-                toast.error('Economy not found!')
-              }
-            }}
-          />
+          <LiveCoinsFeed onCoinSelect={handleCoinSelect} />
         )}
         {activeTab === 'trending' && (
-          <TrendingFeed
-            economies={mockEconomies}
-            onEconomySelect={handleEconomySelect}
-          />
+          <LiveCoinsFeed onCoinSelect={handleCoinSelect} />
         )}
         {activeTab === 'create' && (
-          <RealCreateEconomy onComplete={handleEconomyCreated} />
+          <RealCreateEconomy onComplete={handleCoinCreated} />
         )}
         {activeTab === 'wallet' && <WalletPage />}
         {activeTab === 'profile' && <ProfilePage />}

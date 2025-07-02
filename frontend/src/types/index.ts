@@ -75,3 +75,64 @@ export interface WalletState {
   isConnected: boolean
   chainId: number
 }
+
+export interface CoinHolding {
+  coinAddress: string
+  coin: CreatorCoin
+  balance: number
+  averageBuyPrice: number
+  currentPrice: number
+  currentValue: number
+  unrealizedPnL: number
+  unrealizedPnLPercent: number
+}
+
+export interface V4Transaction {
+  id: string
+  type: 'buy' | 'sell' | 'create' | 'reward_distribution'
+  timestamp: Date
+  coinAddress: string
+  coinsAmount: number
+  totalValue: number
+  creatorReward: number
+  tradeReferralReward: number
+  user: User
+}
+
+export interface CreatorCoin {
+  address: string
+  symbol: string
+  name: string
+  image: string
+  currentPrice: number
+  totalSupply: number
+  holderCount: number
+  volume24h: number
+  creator: User
+  coinType: 'creator' | 'content'
+  cultureRank?: number
+  viralityScore?: number
+}
+
+export interface ContentCoin extends CreatorCoin {
+  coinType: 'content'
+  parentCreatorCoin: string
+  parentCreator: User
+  viralityScore: number
+  properties: {
+    contentType: 'video' | 'meme' | 'music' | 'image'
+    category: 'content'
+  }
+  thumbnailURI?: string
+}
+
+export interface NFT {
+  id: string
+  name: string
+  description: string
+  image: string
+  attributes: Array<{ trait_type: string; value: string | number }>
+  tokenId: string
+  contractAddress: string
+  owner: string
+}
