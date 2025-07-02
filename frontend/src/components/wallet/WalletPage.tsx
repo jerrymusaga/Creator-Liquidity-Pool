@@ -1,3 +1,4 @@
+'use client'
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { 
@@ -11,7 +12,7 @@ import { useStore } from '@/stores/useStore'
 import { CoinHolding, V4Transaction, LiquidityPosition } from '@/types'
 
 export const WalletPage: React.FC = () => {
-  const { user, coinHoldings, transactions } = useStore()
+  const { user, coinHoldings = [], transactions = [] } = useStore()
   const [activeTab, setActiveTab] = useState<'holdings' | 'transactions' | 'rewards'>('holdings')
   const [showBalances, setShowBalances] = useState(true)
 
@@ -33,23 +34,23 @@ export const WalletPage: React.FC = () => {
   }
 
   // Calculate portfolio totals
-  const totalPortfolioValue = coinHoldings.reduce((sum, holding) => sum + holding.currentValue, 0)
-  const totalPnL = coinHoldings.reduce((sum, holding) => sum + holding.unrealizedPnL, 0)
+  const totalPortfolioValue = coinHoldings?.reduce((sum, holding) => sum + holding.currentValue, 0) || 0
+  const totalPnL = coinHoldings?.reduce((sum, holding) => sum + holding.unrealizedPnL, 0) || 0
   const totalPnLPercent = totalPortfolioValue > 0 ? (totalPnL / (totalPortfolioValue - totalPnL)) * 100 : 0
 
   // Get recent transactions
   const recentTransactions = transactions
-    .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
-    .slice(0, 10)
+    ?.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+    ?.slice(0, 10) || []
 
   // Calculate today's rewards from V4
   const todayRewards = recentTransactions
-    .filter(tx => {
+    ?.filter(tx => {
       const today = new Date()
       today.setHours(0, 0, 0, 0)
       return tx.timestamp >= today && (tx.type === 'buy' || tx.type === 'sell')
     })
-    .reduce((sum, tx) => sum + (tx.tradeReferralReward || 0), 0)
+    ?.reduce((sum, tx) => sum + (tx.tradeReferralReward || 0), 0) || 0
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -96,7 +97,7 @@ export const WalletPage: React.FC = () => {
             <div className="grid grid-cols-3 gap-4 mt-4 text-center">
               <div>
                 <p className="text-sm text-gray-400">Holdings</p>
-                <p className="font-semibold">{coinHoldings.length}</p>
+                <p className="font-semibold">{coinHoldings?.length || 0}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-400">Today's Rewards</p>
@@ -106,7 +107,7 @@ export const WalletPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm text-gray-400">Transactions</p>
-                <p className="font-semibold">{transactions.length}</p>
+                <p className="font-semibold">{transactions?.length || 0}</p>
               </div>
             </div>
           </Card>
@@ -144,7 +145,7 @@ export const WalletPage: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             className="space-y-4"
           >
-            {coinHoldings.length === 0 ? (
+            {!coinHoldings || coinHoldings.length === 0 ? (
               <Card className="p-8 text-center">
                 <Coins className="w-12 h-12 text-gray-600 mx-auto mb-4" />
                 <h3 className="font-semibold mb-2">No Holdings Yet</h3>
@@ -157,7 +158,7 @@ export const WalletPage: React.FC = () => {
                 </Button>
               </Card>
             ) : (
-              coinHoldings.map((holding: any) => (
+              coinHoldings?.map((holding: any) => (
                 <CoinHoldingCard
                   key={holding.coinAddress}
                   holding={holding}
@@ -175,7 +176,7 @@ export const WalletPage: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             className="space-y-3"
           >
-            {recentTransactions.length === 0 ? (
+            {!recentTransactions || recentTransactions.length === 0 ? (
               <Card className="p-8 text-center">
                 <Clock className="w-12 h-12 text-gray-600 mx-auto mb-4" />
                 <h3 className="font-semibold mb-2">No Activity Yet</h3>
@@ -184,7 +185,7 @@ export const WalletPage: React.FC = () => {
                 </p>
               </Card>
             ) : (
-              recentTransactions.map((transaction) => (
+              recentTransactions?.map((transaction) => (
                 <TransactionCard
                   key={transaction.id}
                   transaction={transaction}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { User, Bell, Menu, Zap, Activity, Crown, FireExtinguisher } from 'lucide-react'
-import { useStore } from '@/stores/useStore'
+import {  Bell, Menu, Zap, Activity, Crown, FireExtinguisher } from 'lucide-react'
+import { CustomConnectButton } from '@/components/wallet/ConnectButton'
 
 export const Header: React.FC = () => {
   const [showNotifications, setShowNotifications] = useState(false)
@@ -44,6 +44,7 @@ export const Header: React.FC = () => {
               <div className="text-xs text-gray-500 -mt-1">
                 Creator Coins
               </div>
+              <CustomConnectButton showBalance={true} size="sm" />
             </div>
           </motion.div>
 

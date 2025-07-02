@@ -6,6 +6,7 @@ interface AppState {
   economies: Economy[];
   userNFTs: NFT[];
   transactions: Transaction[];
+  coinHoldings: any[];
   selectedEconomy: Economy | null;
   
   // Actions
@@ -14,6 +15,7 @@ interface AppState {
   setSelectedEconomy: (economy: Economy | null) => void;
   addTransaction: (transaction: Transaction) => void;
   addNFT: (nft: NFT) => void;
+  setCoinHoldings: (holdings: any[]) => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -21,6 +23,7 @@ export const useStore = create<AppState>((set) => ({
   economies: [],
   userNFTs: [],
   transactions: [],
+  coinHoldings: [],
   selectedEconomy: null,
   
   setUser: (user) => set({ user }),
@@ -32,4 +35,5 @@ export const useStore = create<AppState>((set) => ({
   addNFT: (nft) => set((state) => ({ 
     userNFTs: [nft, ...state.userNFTs] 
   })),
+  setCoinHoldings: (holdings) => set({ coinHoldings: holdings }),
 }))

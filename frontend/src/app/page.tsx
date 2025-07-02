@@ -5,9 +5,9 @@ import { motion } from 'framer-motion'
 import { Header } from '@/components/layout/Header'
 import { Navigation } from '@/components/layout/Navigation'
 import { Welcome } from '@/components/onboarding/Welcome'
-import HomeFeed from '@/components/home/HomeFeed'
+import { LiveCoinsFeed } from '@/components/home/LiveCoinsFeeds'
 import { TrendingFeed } from '@/components/home/TrendingFeed'
-import { CreatorCoinFrame } from '@/components/creator/CreateEconomy'
+import { RealCreateEconomy } from '@/components/creator/RealCreateEconomy'
 import { WalletPage } from '@/components/wallet/WalletPage'
 import { ProfilePage } from '@/components/profile/ProfilePage'
 import { useStore } from '@/stores/useStore'
@@ -68,9 +68,15 @@ export default function Home() {
       <Header />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {activeTab === 'home' && (
-          <HomeFeed
-            economies={mockEconomies}
-            onEconomySelect={handleEconomySelect}
+          <LiveCoinsFeed
+            onCoinSelect={(coinAddress: string) => {
+              const economy = mockEconomies.find(e => e.id === coinAddress)
+              if (economy) {
+                handleEconomySelect(economy)
+              } else {
+                toast.error('Economy not found!')
+              }
+            }}
           />
         )}
         {activeTab === 'trending' && (
@@ -80,7 +86,7 @@ export default function Home() {
           />
         )}
         {activeTab === 'create' && (
-          <CreatorCoinFrame onComplete={handleEconomyCreated} />
+          <RealCreateEconomy onComplete={handleEconomyCreated} />
         )}
         {activeTab === 'wallet' && <WalletPage />}
         {activeTab === 'profile' && <ProfilePage />}

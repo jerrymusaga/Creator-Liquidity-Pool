@@ -9,7 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@farcaster/frame-wagmi-connector": "^1.0.0",
     "@farcaster/hub-web": "^0.3.0",
+    "@farcaster/miniapp-wagmi-connector": "^1.0.0",
+    "@rainbow-me/rainbowkit": "^2.2.8",
+    "@tanstack/react-query": "^5.81.5",
+    "@zoralabs/coins-sdk": "^0.2.8",
     "@zoralabs/protocol-sdk": "^0.8.0",
     "framer-motion": "^12.18.1",
     "lucide-react": "^0.515.0",
@@ -19,8 +24,8 @@
     "react-hot-toast": "^2.5.2",
     "react-toastify": "^11.0.5",
     "tailwindcss-animate": "^1.0.0",
-    "viem": "^2.0.0",
-    "wagmi": "^2.0.0",
+    "viem": "^2.31.6",
+    "wagmi": "^2.15.6",
     "zustand": "^4.4.0"
   },
   "devDependencies": {

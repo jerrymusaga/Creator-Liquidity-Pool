@@ -1,8 +1,9 @@
+'use client'
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { 
   Settings, Share, Copy, ExternalLink, Edit3, Crown,
-  TrendingUp, Users, Coins, Zap, Star, Play, Eye,
+  TrendingUp, Users,Plus, Coins, Zap, Star, Play, Eye,
   BarChart3, Calendar, Award, Target, Link as LinkIcon
 } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
@@ -12,7 +13,7 @@ import { Economy, CreatorCoin, ContentCoin } from '@/types'
 import toast from 'react-hot-toast'
 
 export const ProfilePage: React.FC = () => {
-  const { user, economies, coinHoldings, transactions } = useStore()
+  const { user, economies = [], coinHoldings = [], transactions = [] } = useStore()
   const [activeTab, setActiveTab] = useState<'overview' | 'coins' | 'content' | 'analytics'>('overview')
 
   if (!user) {
@@ -33,14 +34,14 @@ export const ProfilePage: React.FC = () => {
   }
 
   // Get user's created economies
-  const userEconomies = economies.filter(e => e.creator.id === user.id)
-  const totalEarnings = userEconomies.reduce((sum, e) => sum + e.totalEarnings, 0)
-  const totalVolume = userEconomies.reduce((sum, e) => sum + e.creatorCoin.volume24h, 0)
-  const totalHolders = userEconomies.reduce((sum, e) => sum + e.creatorCoin.holderCount, 0)
-  const allContentCoins = userEconomies.flatMap(e => e.contentCoins)
+  const userEconomies = economies?.filter(e => e.creator.id === user?.id) || []
+  const totalEarnings = userEconomies?.reduce((sum, e) => sum + e.totalEarnings, 0) || 0
+  const totalVolume = userEconomies?.reduce((sum, e) => sum + e.creatorCoin?.volume24h || 0, 0) || 0
+  const totalHolders = userEconomies?.reduce((sum, e) => sum + e.creatorCoin?.holderCount || 0, 0) || 0
+  const allContentCoins = userEconomies?.flatMap(e => e.contentCoins || []) || []
 
   // Portfolio value
-  const portfolioValue = coinHoldings.reduce((sum, holding) => sum + holding.currentValue, 0)
+  const portfolioValue = coinHoldings?.reduce((sum, holding) => sum + holding.currentValue, 0) || 0
 
   const handleShare = () => {
     const shareText = `Check out ${user.username}'s Creator Economy on @zora! 🚀\n\nCreator Coins: ${userEconomies.length}\nTotal Holders: ${totalHolders}\n\nJoin the economy:`
@@ -124,7 +125,7 @@ export const ProfilePage: React.FC = () => {
           {user.isCreator && userEconomies.length > 0 ? (
             <div className="grid grid-cols-4 gap-3 mb-6">
               <div className="text-center">
-                <p className="text-lg font-bold text-vibe-purple">{userEconomies.length}</p>
+                <p className="text-lg font-bold text-vibe-purple">{userEconomies?.length || 0}</p>
                 <p className="text-xs text-gray-400">Coins</p>
               </div>
               <div className="text-center">
@@ -136,14 +137,14 @@ export const ProfilePage: React.FC = () => {
                 <p className="text-xs text-gray-400">Volume</p>
               </div>
               <div className="text-center">
-                <p className="text-lg font-bold text-vibe-pink">{allContentCoins.length}</p>
+                <p className="text-lg font-bold text-vibe-pink">{allContentCoins?.length || 0}</p>
                 <p className="text-xs text-gray-400">Content</p>
               </div>
             </div>
           ) : (
             <div className="grid grid-cols-3 gap-3 mb-6">
               <div className="text-center">
-                <p className="text-lg font-bold text-vibe-purple">{coinHoldings.length}</p>
+                <p className="text-lg font-bold text-vibe-purple">{coinHoldings?.length || 0}</p>
                 <p className="text-xs text-gray-400">Holdings</p>
               </div>
               <div className="text-center">
@@ -151,7 +152,7 @@ export const ProfilePage: React.FC = () => {
                 <p className="text-xs text-gray-400">Portfolio</p>
               </div>
               <div className="text-center">
-                <p className="text-lg font-bold text-vibe-blue">{transactions.length}</p>
+                <p className="text-lg font-bold text-vibe-blue">{transactions?.length || 0}</p>
                 <p className="text-xs text-gray-400">Trades</p>
               </div>
             </div>
@@ -267,17 +268,17 @@ export const ProfilePage: React.FC = () => {
                     <p className="text-sm text-gray-400 mb-1">Portfolio Value</p>
                     <p className="text-2xl font-bold mb-2">${portfolioValue.toFixed(2)}</p>
                     <p className="text-sm text-gray-400">
-                      Supporting {new Set(coinHoldings.map(h => h.coin.creator?.id)).size} creators
+                      Supporting {new Set(coinHoldings?.map(h => h.coin.creator?.id) || []).size} creators
                     </p>
                   </div>
                 </Card>
 
                 {/* Favorite Creators */}
-                {coinHoldings.length > 0 && (
+                {coinHoldings && coinHoldings.length > 0 && (
                   <Card className="p-4">
                     <h3 className="font-semibold mb-3">Your Creator Coins</h3>
                     <div className="space-y-3">
-                      {coinHoldings.slice(0, 3).map((holding) => (
+                      {coinHoldings?.slice(0, 3).map((holding) => (
                         <div key={holding.coinAddress} className="flex items-center justify-between">
                           <div className="flex items-center space-x-3">
                             <img
@@ -341,7 +342,7 @@ export const ProfilePage: React.FC = () => {
               )
             ) : (
               /* Fan's Holdings */
-              coinHoldings.length === 0 ? (
+              !coinHoldings || coinHoldings.length === 0 ? (
                 <Card className="p-8 text-center">
                   <Coins className="w-12 h-12 text-gray-600 mx-auto mb-4" />
                   <h3 className="font-semibold mb-2">No Holdings Yet</h3>
@@ -353,7 +354,7 @@ export const ProfilePage: React.FC = () => {
                   </Button>
                 </Card>
               ) : (
-                coinHoldings.map((holding) => (
+                coinHoldings?.map((holding) => (
                   <HoldingCard key={holding.coinAddress} holding={holding} />
                 ))
               )
@@ -368,7 +369,7 @@ export const ProfilePage: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             className="space-y-4"
           >
-            {allContentCoins.length === 0 ? (
+            {!allContentCoins || allContentCoins.length === 0 ? (
               <Card className="p-8 text-center">
                 <Play className="w-12 h-12 text-gray-600 mx-auto mb-4" />
                 <h3 className="font-semibold mb-2">No Content Coins Yet</h3>
@@ -381,7 +382,7 @@ export const ProfilePage: React.FC = () => {
                 </Button>
               </Card>
             ) : (
-              allContentCoins.map((contentCoin) => (
+              allContentCoins?.map((contentCoin) => (
                 <ContentCoinCard key={contentCoin.address} contentCoin={contentCoin} />
               ))
             )}
@@ -410,7 +411,7 @@ export const ProfilePage: React.FC = () => {
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-gray-400">Content Coins</span>
-                      <span className="font-semibold">{allContentCoins.length}</span>
+                      <span className="font-semibold">{allContentCoins?.length || 0}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-gray-400">Avg Daily Earnings</span>
@@ -423,7 +424,7 @@ export const ProfilePage: React.FC = () => {
                   <>
                     <div className="flex items-center justify-between">
                       <span className="text-gray-400">Total Trades</span>
-                      <span className="font-semibold">{transactions.length}</span>
+                      <span className="font-semibold">{transactions?.length || 0}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-gray-400">Portfolio Value</span>
@@ -432,7 +433,7 @@ export const ProfilePage: React.FC = () => {
                     <div className="flex items-center justify-between">
                       <span className="text-gray-400">Creators Supported</span>
                       <span className="font-semibold">
-                        {new Set(coinHoldings.map(h => h.coin.creator?.id)).size}
+                        {new Set(coinHoldings?.map(h => h.coin.creator?.id) || []).size}
                       </span>
                     </div>
                   </>

@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { 
-  Home, TrendingUp, Plus, Wallet, User, 
-  Bell, Zap, Activity, Crown, Fire
+  Home, TrendingUp, Plus, Wallet, User
 } from 'lucide-react'
+import { useWallet } from '@/hooks/useWallet'
+
 
 interface NavigationProps {
   activeTab: string
@@ -11,6 +12,7 @@ interface NavigationProps {
 }
 
 export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }) => {
+  const { isConnected, isOnCorrectNetwork } = useWallet()
   const tabs = [
     { 
       id: 'home', 
@@ -53,6 +55,9 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-sm border-t border-gray-800 z-50 safe-area-inset-bottom">
       <div className="flex justify-around items-center py-2 px-4 max-w-lg mx-auto">
+        {isConnected && !isOnCorrectNetwork && (
+          <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+        )}
         {tabs.map((tab) => {
           const Icon = tab.icon
           const isActive = activeTab === tab.id
