@@ -75,7 +75,7 @@ export function useCreateCoin() {
   });
 }
 
-// Hook for uploading metadata to IPFS (would need additional setup)
+// Hook for uploading metadata to IPFS
 export function useUploadMetadata() {
   return useMutation({
     mutationFn: async (metadata: {
@@ -84,24 +84,35 @@ export function useUploadMetadata() {
       image: string;
       external_url?: string;
       attributes?: Array<{ trait_type: string; value: string | number }>;
+      properties?: {
+        category?: string;
+        creator?: string;
+        social_links?: {
+          twitter?: string;
+          farcaster?: string;
+          website?: string;
+        };
+      };
     }) => {
-      // TODO: Implement IPFS upload
-      // This would typically use a service like Pinata, IPFS HTTP API, or Web3.Storage
-      // For now, return a mock IPFS hash
-      console.warn('IPFS upload not implemented. Using mock metadata URI.');
+      const { uploadMetadataToIPFS } = await import('@/lib/ipfs');
       
-      // In a real implementation, you would:
-      // 1. Upload the metadata JSON to IPFS
-      // 2. Return the IPFS URI (ipfs://...)
+      // Upload the metadata JSON to IPFS
+      const result = await uploadMetadataToIPFS({
+        name: metadata.name,
+        description: metadata.description,
+        image: metadata.image,
+        external_url: metadata.external_url,
+        attributes: metadata.attributes || [],
+        properties: metadata.properties || {},
+      });
       
-      const mockHash = 'bafybeigoxzqzbnxsn35vq7lls3ljxdcwjafxvbvkivprsodzrptpiguysy';
-      return `ipfs://${mockHash}`;
+      return result.uri;
     },
     onMutate: () => {
-      toast.loading('Uploading metadata...', { id: 'upload-metadata' });
+      toast.loading('Uploading metadata to IPFS...', { id: 'upload-metadata' });
     },
     onSuccess: (uri) => {
-      toast.success('Metadata uploaded successfully!', { id: 'upload-metadata' });
+      toast.success('Metadata uploaded to IPFS successfully!', { id: 'upload-metadata' });
       return uri;
     },
     onError: (error: any) => {

@@ -7,7 +7,7 @@ import { Navigation } from '@/components/layout/Navigation'
 import { Welcome } from '@/components/onboarding/Welcome'
 import { PersonalizedHomeFeed } from '@/components/home/PersonalizedHomeFeed'
 import { EnhancedTrendingFeed } from '@/components/home/EnhancedTrendingFeed'
-import { RealCreateEconomy } from '@/components/creator/RealCreateEconomy'
+import { IPFSCoinCreation } from '@/components/creator/IPFSCoinCreation'
 import { WalletPage } from '@/components/wallet/WalletPage'
 import { ProfilePage } from '@/components/profile/ProfilePage'
 import { useStore } from '@/stores/useStore'
@@ -79,7 +79,7 @@ export default function Home() {
           <EnhancedTrendingFeed onCoinSelect={handleCoinSelect} />
         )}
         {activeTab === 'create' && (
-          <RealCreateEconomy onComplete={handleCoinCreated} />
+          <IPFSCoinCreation onComplete={handleCoinCreated} />
         )}
         {activeTab === 'wallet' && <WalletPage />}
         {activeTab === 'profile' && <ProfilePage />}
