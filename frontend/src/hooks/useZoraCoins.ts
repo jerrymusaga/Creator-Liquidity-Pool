@@ -8,6 +8,7 @@ import {
   getCoinsLastTraded,
 } from '@zoralabs/coins-sdk';
 import { ZORA_CONFIG } from '@/config/zora';
+import { getCurrentNetworkConfig } from '@/config/networks';
 
 interface QueryParams {
   count?: number;
@@ -19,9 +20,10 @@ export function useTopVolumeCoins(params: QueryParams = {}) {
   return useQuery({
     queryKey: ['zora-coins', 'top-volume', params],
     queryFn: async () => {
+      const networkConfig = getCurrentNetworkConfig();
       const response = await getCoinsTopVolume24h({
         count: params.count || ZORA_CONFIG.defaultPageSize,
-        after: params.after,
+        after: params.after
       });
       return response.data?.exploreList?.edges?.map((edge: any) => edge.node) || [];
     },
@@ -34,9 +36,10 @@ export function useMostValuableCoins(params: QueryParams = {}) {
   return useQuery({
     queryKey: ['zora-coins', 'most-valuable', params],
     queryFn: async () => {
+      const networkConfig = getCurrentNetworkConfig();
       const response = await getCoinsMostValuable({
         count: params.count || ZORA_CONFIG.defaultPageSize,
-        after: params.after,
+        after: params.after
       });
       return response.data?.exploreList?.edges?.map((edge: any) => edge.node) || [];
     },
@@ -49,9 +52,10 @@ export function useNewCoins(params: QueryParams = {}) {
   return useQuery({
     queryKey: ['zora-coins', 'new', params],
     queryFn: async () => {
+      const networkConfig = getCurrentNetworkConfig();
       const response = await getCoinsNew({
         count: params.count || ZORA_CONFIG.defaultPageSize,
-        after: params.after,
+        after: params.after
       });
       return response.data?.exploreList?.edges?.map((edge: any) => edge.node) || [];
     },
@@ -64,9 +68,10 @@ export function useTopGainerCoins(params: QueryParams = {}) {
   return useQuery({
     queryKey: ['zora-coins', 'top-gainers', params],
     queryFn: async () => {
+      const networkConfig = getCurrentNetworkConfig();
       const response = await getCoinsTopGainers({
         count: params.count || ZORA_CONFIG.defaultPageSize,
-        after: params.after,
+        after: params.after
       });
       return response.data?.exploreList?.edges?.map((edge: any) => edge.node) || [];
     },
@@ -79,9 +84,10 @@ export function useRecentlyTradedCoins(params: QueryParams = {}) {
   return useQuery({
     queryKey: ['zora-coins', 'recently-traded', params],
     queryFn: async () => {
+      const networkConfig = getCurrentNetworkConfig();
       const response = await getCoinsLastTraded({
         count: params.count || ZORA_CONFIG.defaultPageSize,
-        after: params.after,
+        after: params.after
       });
       return response.data?.exploreList?.edges?.map((edge: any) => edge.node) || [];
     },
