@@ -1,18 +1,19 @@
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAccount, usePublicClient, useWalletClient } from 'wagmi'
 import { parseEther, formatEther, Address } from 'viem'
 import { 
   createCoin, 
-  getCoin, 
-  getCoinsTopVolume24h,
-  getCoinsNew,
-  getCoinsMostValuable,
-  getCoinsTopGainers,
   validateMetadataURIContent,
   getCoinCreateFromLogs,
   DeployCurrency,
-  type CreateCoinArgs
+  type CreateCoinArgs,
+  type InitialPurchaseCurrency,
+  getCoin,
+  getCoinsTopVolume24h,
+  getCoinsNew,
+  getCoinsTopGainers,
+  setApiKey
 } from '@zoralabs/coins-sdk'
 import { getCurrentNetworkConfig } from '@/config/networks'
 import toast from 'react-hot-toast'
@@ -52,9 +53,16 @@ export function useZoraSDK() {
   const [isLoading, setIsLoading] = useState(false)
   
   const { address, isConnected } = useAccount()
-  const publicClient = usePublicClient()
-  const { data: walletClient } = useWalletClient()
   const networkConfig = getCurrentNetworkConfig()
+  const publicClient = usePublicClient({ chainId: networkConfig.chain.id })
+  const { data: walletClient } = useWalletClient({ chainId: networkConfig.chain.id })
+
+  // Configure API key if available
+  useEffect(() => {
+    if (process.env.NEXT_PUBLIC_ZORA_API_KEY) {
+      setApiKey(process.env.NEXT_PUBLIC_ZORA_API_KEY)
+    }
+  }, [])
 
   /**
    * Upload metadata to IPFS using Pinata or similar service
@@ -146,9 +154,27 @@ export function useZoraSDK() {
         platformReferrer: process.env.NEXT_PUBLIC_VIBE_PLATFORM_ADDRESS as Address,
         currency: DeployCurrency.ETH,
         chainId: networkConfig.chain.id,
-        initialPurchaseWei: params.initialPurchaseWei || parseEther("0.001") // Default 0.001 ETH initial purchase
+        initialPurchase: {
+          currency: 'ETH' as InitialPurchaseCurrency,
+          amount: params.initialPurchaseWei || parseEther("0.001")
+        }
       }
 
+      // Validate network before creating coin
+      const chainId = networkConfig.chain.id
+      const networkName = chainId === 8453 ? 'base' : 'baseSepolia'
+      console.log('Network Config Chain ID:', chainId, 'Expected Base:', 8453, 'Expected Base Sepolia:', 84532)
+      console.log('Creating coin on network:', networkName, 'Chain ID:', chainId)
+      
+      // Check if we're on a supported network
+      if (chainId !== 8453 && chainId !== 84532) {
+        throw new Error(`Unsupported network. Please switch to Base (8453) or Base Sepolia (84532). Current: ${chainId}`)
+      }
+      
+      // Check client configuration
+      console.log('Public Client Chain ID:', publicClient?.chain?.id || 'undefined')
+      console.log('Wallet Client Chain ID:', walletClient?.chain?.id || 'undefined')
+      
       // Create the coin using Zora SDK
       const result = await createCoin({
         ...coinParams,
@@ -156,7 +182,7 @@ export function useZoraSDK() {
         walletClient
       })
 
-      if (result.success && result.receipt) {
+      if (result && typeof result === 'object' && 'success' in result && result.success && result.receipt) {
         // Extract coin address from transaction logs
         const coinDeployment = getCoinCreateFromLogs(result.receipt)
         const coinAddress = coinDeployment?.coin
@@ -177,8 +203,22 @@ export function useZoraSDK() {
         )
         
         return coinAddress
+      } else if (typeof result === 'string') {
+        // If result is a string, it's likely the coin address
+        toast.success(
+          <div className="flex items-center">
+            <span className="mr-2">🚀</span>
+            <div>
+              <p className="font-semibold">Creator Coin Deployed!</p>
+              <p className="text-xs text-gray-400">V4 auto-rewards enabled • {result.slice(0, 8)}...</p>
+            </div>
+          </div>,
+          { duration: 5000 }
+        )
+        
+        return result
       } else {
-        throw new Error(result.error || 'Coin creation failed')
+        throw new Error(result && typeof result === 'object' && 'error' in result ? result.error : 'Coin creation failed')
       }
 
     } catch (error: any) {
@@ -206,8 +246,7 @@ export function useZoraSDK() {
     
     try {
       const response = await getCoinsTopVolume24h({
-        count: limit,
-        chainId: networkConfig.chain.id
+        count: limit
       })
 
       const coins = response.data?.exploreList?.edges?.map((edge: any) => {
@@ -217,13 +256,13 @@ export function useZoraSDK() {
           name: coin.name || 'Unnamed Coin',
           symbol: coin.symbol || 'UNKNOWN',
           description: coin.description || 'A Creator Coin on Zora V4',
-          image: coin.image || `https://api.dicebear.com/7.x/identicon/svg?seed=${coin.symbol}`,
+          image: coin.image?.previewImage?.medium || coin.image || `https://api.dicebear.com/7.x/identicon/svg?seed=${coin.symbol}`,
           totalSupply: coin.totalSupply || '0',
           marketCap: coin.marketCap || '0',
-          volume24h: coin.volume24h || '0',
+          volume24h: coin.volume24h || coin.totalVolume || '0',
           holderCount: coin.uniqueHolders || 0,
-          currentPrice: coin.currentPrice || '0',
-          priceChange24h: coin.priceChange24h || 0,
+          currentPrice: coin.currentPrice || coin.priceUSD || '0',
+          priceChange24h: coin.priceChange24h || coin.priceChangePercent24h || 0,
           creator: {
             address: coin.creatorAddress || '',
             username: coin.creatorProfile?.handle || `${coin.creatorAddress?.slice(0,6)}...${coin.creatorAddress?.slice(-4)}` || 'Unknown',
@@ -254,8 +293,7 @@ export function useZoraSDK() {
     
     try {
       const response = await getCoinsNew({
-        count: limit,
-        chainId: networkConfig.chain.id
+        count: limit
       })
 
       const coins = response.data?.exploreList?.edges?.map((edge: any) => {
@@ -265,13 +303,13 @@ export function useZoraSDK() {
           name: coin.name || 'Unnamed Coin',
           symbol: coin.symbol || 'UNKNOWN',
           description: coin.description || 'A Creator Coin on Zora V4',
-          image: coin.image || `https://api.dicebear.com/7.x/identicon/svg?seed=${coin.symbol}`,
+          image: coin.image?.previewImage?.medium || coin.image || `https://api.dicebear.com/7.x/identicon/svg?seed=${coin.symbol}`,
           totalSupply: coin.totalSupply || '0',
           marketCap: coin.marketCap || '0',
-          volume24h: coin.volume24h || '0',
+          volume24h: coin.volume24h || coin.totalVolume || '0',
           holderCount: coin.uniqueHolders || 0,
-          currentPrice: coin.currentPrice || '0',
-          priceChange24h: coin.priceChange24h || 0,
+          currentPrice: coin.currentPrice || coin.priceUSD || '0',
+          priceChange24h: coin.priceChange24h || coin.priceChangePercent24h || 0,
           creator: {
             address: coin.creatorAddress || '',
             username: coin.creatorProfile?.handle || `${coin.creatorAddress?.slice(0,6)}...${coin.creatorAddress?.slice(-4)}` || 'Unknown',
@@ -302,8 +340,7 @@ export function useZoraSDK() {
     
     try {
       const response = await getCoinsTopGainers({
-        count: limit,
-        chainId: networkConfig.chain.id
+        count: limit
       })
 
       const coins = response.data?.exploreList?.edges?.map((edge: any) => {
@@ -313,13 +350,13 @@ export function useZoraSDK() {
           name: coin.name || 'Unnamed Coin',
           symbol: coin.symbol || 'UNKNOWN',
           description: coin.description || 'A Creator Coin on Zora V4',
-          image: coin.image || `https://api.dicebear.com/7.x/identicon/svg?seed=${coin.symbol}`,
+          image: coin.image?.previewImage?.medium || coin.image || `https://api.dicebear.com/7.x/identicon/svg?seed=${coin.symbol}`,
           totalSupply: coin.totalSupply || '0',
           marketCap: coin.marketCap || '0',
-          volume24h: coin.volume24h || '0',
+          volume24h: coin.volume24h || coin.totalVolume || '0',
           holderCount: coin.uniqueHolders || 0,
-          currentPrice: coin.currentPrice || '0',
-          priceChange24h: coin.priceChange24h || 0,
+          currentPrice: coin.currentPrice || coin.priceUSD || '0',
+          priceChange24h: coin.priceChange24h || coin.priceChangePercent24h || 0,
           creator: {
             address: coin.creatorAddress || '',
             username: coin.creatorProfile?.handle || `${coin.creatorAddress?.slice(0,6)}...${coin.creatorAddress?.slice(-4)}` || 'Unknown',
@@ -347,9 +384,8 @@ export function useZoraSDK() {
    */
   const getCoinData = async (coinAddress: string): Promise<ZoraCoinData | null> => {
     try {
-      const response = await getCoin({ 
-        address: coinAddress,
-        chain: networkConfig.chain.id 
+      const response = await getCoin({
+        address: coinAddress
       })
       
       const coinData = response.data?.zora20Token
@@ -360,13 +396,13 @@ export function useZoraSDK() {
         name: coinData.name || 'Unnamed Coin',
         symbol: coinData.symbol || 'UNKNOWN',
         description: coinData.description || 'A Creator Coin on Zora V4',
-        image: coinData.image || `https://api.dicebear.com/7.x/identicon/svg?seed=${coinData.symbol}`,
+        image: (coinData as any).image || `https://api.dicebear.com/7.x/identicon/svg?seed=${coinData.symbol}`,
         totalSupply: coinData.totalSupply || '0',
         marketCap: coinData.marketCap || '0',
         volume24h: coinData.volume24h || '0',
         holderCount: coinData.uniqueHolders || 0,
-        currentPrice: coinData.currentPrice || '0',
-        priceChange24h: coinData.priceChange24h || 0,
+        currentPrice: (coinData as any).priceUSD || '0',
+        priceChange24h: (coinData as any).priceChangePercent24h || 0,
         creator: {
           address: coinData.creatorAddress || '',
           username: coinData.creatorProfile?.handle || `${coinData.creatorAddress?.slice(0,6)}...${coinData.creatorAddress?.slice(-4)}` || 'Unknown',
@@ -404,7 +440,7 @@ export function useZoraSDK() {
   /**
    * Buy a coin (this would integrate with Uniswap V4 in production)
    */
-  const buyCoin = async (coinAddress: string, ethAmount: number): Promise<boolean> => {
+  const buyCoin = async (_coinAddress: string, _ethAmount: number): Promise<boolean> => {
     if (!isConnected || !address || !walletClient) {
       toast.error('Please connect your wallet first')
       return false
@@ -437,7 +473,7 @@ export function useZoraSDK() {
   /**
    * Estimate gas for transactions
    */
-  const estimateCreateCoinGas = async (params: CreateCoinParams) => {
+  const estimateCreateCoinGas = async (_params: CreateCoinParams) => {
     if (!publicClient || !address) return null
     
     try {
