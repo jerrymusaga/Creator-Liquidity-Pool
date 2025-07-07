@@ -59,10 +59,24 @@ export async function POST(request: NextRequest) {
 
       } catch (pinataError) {
         console.error('Pinata upload failed:', pinataError)
-        // Fall through to alternative method
+        return NextResponse.json(
+          { 
+            error: 'Pinata upload failed',
+            details: pinataError instanceof Error ? pinataError.message : 'Unknown error'
+          },
+          { status: 500 }
+        )
       }
     }
 
+    // If no IPFS service is configured
+    return NextResponse.json(
+      { 
+        error: 'No IPFS service configured',
+        details: 'Please configure PINATA_JWT environment variable'
+      },
+      { status: 500 }
+    )
 
   } catch (error) {
     console.error('Metadata upload error:', error)

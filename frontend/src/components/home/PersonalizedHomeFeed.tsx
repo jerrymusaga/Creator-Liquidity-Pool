@@ -9,6 +9,7 @@ import {
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { useNewCoins, useTopGainerCoins, useMostValuableCoins } from '@/hooks/useZoraCoins'
+import { useUserCreatedCoins } from '@/hooks/useZoraProfile'
 import { useWallet } from '@/hooks/useWallet'
 import { CreatorSpotlight, CreatorCategory } from '@/types'
 
@@ -27,10 +28,11 @@ const creatorCategories: CreatorCategory[] = [
 ]
 
 export const PersonalizedHomeFeed: React.FC<PersonalizedHomeFeedProps> = ({ onCoinSelect }) => {
-  const { isConnected } = useWallet()
+  const { isConnected, address } = useWallet()
   const { data: newCoins, isLoading: loadingNew } = useNewCoins({ count: 6 })
   const { data: topGainers, isLoading: loadingGainers } = useTopGainerCoins({ count: 4 })
   const { data: popularCoins, isLoading: loadingPopular } = useMostValuableCoins({ count: 8 })
+  const { data: userCreatedCoins, isLoading: loadingUserCoins } = useUserCreatedCoins()
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
@@ -89,6 +91,72 @@ export const PersonalizedHomeFeed: React.FC<PersonalizedHomeFeedProps> = ({ onCo
           }
         </p>
       </motion.div>
+
+      {/* User's Created Coins */}
+      {isConnected && (loadingUserCoins || (userCreatedCoins && userCreatedCoins.length > 0)) && (
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+        >
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold flex items-center">
+              <Crown className="w-6 h-6 text-vibe-green mr-2" />
+              Your Creator Coins
+            </h2>
+            <Button variant="outline" size="sm">
+              <Plus className="w-4 h-4 mr-2" />
+              Create New
+            </Button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            {loadingUserCoins ? (
+              // Loading skeleton
+              Array.from({ length: 2 }).map((_, i) => (
+                <Card key={i} className="p-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-gray-700 rounded-full animate-pulse"></div>
+                    <div className="flex-1">
+                      <div className="h-4 bg-gray-700 rounded animate-pulse mb-2"></div>
+                      <div className="h-3 bg-gray-700 rounded animate-pulse w-3/4"></div>
+                    </div>
+                  </div>
+                </Card>
+              ))
+            ) : (
+              userCreatedCoins?.slice(0, 4).map((coin) => (
+              <div 
+                key={coin.address} 
+                className="p-4 hover:bg-gray-800/50 transition-colors cursor-pointer bg-gray-800 rounded-lg"
+                onClick={() => onCoinSelect?.(coin.address)}
+              >
+                <div className="flex items-center space-x-3">
+                  <img
+                    src={coin.image}
+                    alt={coin.symbol}
+                    className="w-12 h-12 rounded-full"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <h3 className="font-semibold">{coin.name}</h3>
+                      <span className="text-sm text-vibe-green font-mono">${coin.symbol}</span>
+                    </div>
+                    <div className="flex items-center space-x-4 text-xs text-gray-500">
+                      <span>{coin.holderCount} holders</span>
+                      <span>${(parseFloat(coin.volume24h) / 1000).toFixed(1)}K volume</span>
+                      <span className={`${parseFloat(coin.priceChange24h.toString()) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        {parseFloat(coin.priceChange24h.toString()) >= 0 ? '+' : ''}{coin.priceChange24h}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              ))
+            )}
+          </div>
+        </motion.section>
+      )}
 
       {/* Creator Spotlight */}
       {spotlights.length > 0 && (

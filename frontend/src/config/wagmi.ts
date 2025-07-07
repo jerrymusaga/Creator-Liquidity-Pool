@@ -1,7 +1,7 @@
 // config/wagmi.ts
 import { createConfig, http } from "wagmi";
 import { base, baseSepolia } from "wagmi/chains";
-import { farcasterFrame } from "@farcaster/frame-wagmi-connector";
+import { farcasterMiniApp } from "@farcaster/miniapp-wagmi-connector";
 import { 
   connectorsForWallets 
 } from "@rainbow-me/rainbowkit";
@@ -43,7 +43,7 @@ const connectors = connectorsForWallets(
 export const wagmiConfig = createConfig({
   chains: SUPPORTED_CHAINS,
   connectors: [
-    farcasterFrame(),
+    farcasterMiniApp(),
     ...connectors,
   ],
   transports: {

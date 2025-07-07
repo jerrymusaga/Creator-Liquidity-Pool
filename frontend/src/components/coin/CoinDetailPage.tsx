@@ -3,9 +3,9 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { 
-  ArrowLeft, TrendingUp, TrendingDown, Users, BarChart3,
-  Clock, Target, Zap, Crown, Share, ExternalLink,
-  Heart, MessageCircle, Star, Plus, Minus
+  ArrowLeft, TrendingUp, TrendingDown, BarChart3,
+  Target, Zap, Crown, Share,
+  MessageCircle, Plus, Minus
 } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -58,16 +58,14 @@ export const CoinDetailPage: React.FC<CoinDetailPageProps> = ({ coin, onBack }) 
 
   const handleTrade = async () => {
     if (!isConnected) {
-      toast.error('Connect wallet to trade')
+      console.error('Connect wallet to trade')
       return
     }
 
     // Mock trading logic
     console.log(`${tradeType} ${tradeAmount} ETH worth of ${mockCoin.symbol}`)
     
-    toast.success(`${tradeType === 'buy' ? 'Bought' : 'Sold'} ${mockCoin.symbol} successfully!`, {
-      duration: 3000,
-    })
+    console.log(`${tradeType === 'buy' ? 'Bought' : 'Sold'} ${mockCoin.symbol} successfully!`)
   }
 
   return (

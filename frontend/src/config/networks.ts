@@ -1,7 +1,7 @@
 
 import { base, baseSepolia } from "wagmi/chains";
 
-export const CURRENT_NETWORK = baseSepolia; // Change to baseSepolia for testnet
+export const CURRENT_NETWORK = base; // Use Base Mainnet for production
 export const NETWORK_CONFIG = {
   [base.id]: {
     chain: base,

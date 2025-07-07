@@ -195,7 +195,7 @@ export const SocialFeatures: React.FC<SocialFeaturesProps> = ({
             <Button
               onClick={handleFollow}
               disabled={!isConnected}
-              variant={isFollowing ? "outline" : "default"}
+              variant={isFollowing ? "outline" : "primary"}
               size="sm"
               className={isFollowing ? "border-vibe-purple text-vibe-purple" : ""}
             >

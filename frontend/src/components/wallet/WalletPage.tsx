@@ -117,7 +117,7 @@ export const WalletPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm text-gray-400">Transactions</p>
-                <p className="font-semibold">{transactions?.length || 0}</p>
+                <p className="font-semibold">{Array.isArray(transactions) ? transactions.length : 0}</p>
               </div>
             </div>
           </Card>
@@ -195,13 +195,13 @@ export const WalletPage: React.FC = () => {
                 </p>
               </Card>
             ) : (
-              recentTransactions?.map((transaction) => (
+              Array.isArray(recentTransactions) ? recentTransactions.map((transaction: any) => (
                 <TransactionCard
                   key={transaction.id}
                   transaction={transaction}
                   showAmount={showBalances}
                 />
-              ))
+              )) : null
             )}
           </motion.div>
         )}
@@ -301,7 +301,7 @@ const CoinHoldingCard: React.FC<{
     if (holding.coin.coinType === 'creator' && coin.cultureRank && coin.cultureRank <= 10) {
       return <Crown className="w-4 h-4 text-vibe-purple" />
     }
-    if (holding.coin.coinType === 'content' && coin.viralityScore > 80) {
+    if (holding.coin.coinType === 'content' && coin.viralityScore && coin.viralityScore > 80) {
       return <FireExtinguisher className="w-4 h-4 text-orange-400" />
     }
     return null

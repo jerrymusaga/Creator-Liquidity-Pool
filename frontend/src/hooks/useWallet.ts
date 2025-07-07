@@ -25,10 +25,10 @@ export function useWallet() {
         avatar: `https://api.dicebear.com/7.x/identicon/svg?seed=${address}`,
         isCreator: true,
         walletAddress: address,
-        farcasterHandle: null
+        farcasterHandle: undefined
       })
     } else {
-      setUser(null)
+      setUser(null as any)
     }
   }, [isConnected, address, setUser])
 

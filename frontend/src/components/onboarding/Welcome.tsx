@@ -2,7 +2,22 @@ import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/Button'
 import { useStore } from '@/stores/useStore'
-import { mockUsers } from '@/lib/mockData'
+// Mock users data - TODO: Replace with real authentication
+const mockUsers = [
+  {
+    id: '1',
+    username: 'TestCreator',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=creator',
+    isCreator: true,
+    walletAddress: '0x1234...5678'
+  },
+  {
+    id: '2',
+    username: 'TestUser',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=user',
+    isCreator: false
+  }
+]
 
 interface WelcomeProps {
   onComplete: () => void

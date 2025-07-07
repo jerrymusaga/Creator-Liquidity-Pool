@@ -7,7 +7,36 @@ import { Card } from '@/components/ui/Card'
 import { Coins, Users, TrendingUp} from 'lucide-react'
 import { useStore } from '@/stores/useStore'
 import toast from 'react-hot-toast'
-import { mockPerks } from '@/lib/mockData'
+// Mock perks data - TODO: Replace with real API
+const mockPerks = [
+  {
+    id: '1',
+    economyId: '1',
+    title: 'Discord Shoutout',
+    description: 'Get featured in creator Discord!',
+    cost: 50,
+    available: true,
+    icon: '📢'
+  },
+  {
+    id: '2',
+    economyId: '1',
+    title: 'Gaming Session',
+    description: 'Play with the creator!',
+    cost: 200,
+    available: true,
+    icon: '🎮'
+  },
+  {
+    id: '3',
+    economyId: '1',
+    title: 'Exclusive NFT',
+    description: 'Limited edition collectible',
+    cost: 100,
+    available: false,
+    icon: '🎨'
+  }
+]
 interface EconomyPageProps {
   economy: Economy
   onBack: () => void

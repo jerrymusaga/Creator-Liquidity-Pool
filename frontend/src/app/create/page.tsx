@@ -1,3 +1,4 @@
+'use client'
 import React from 'react'
 import { RealCreateEconomy } from '@/components/creator/RealCreateEconomy'
 export default function CreatePage() {

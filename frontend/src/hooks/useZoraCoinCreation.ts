@@ -1,7 +1,7 @@
 // hooks/useZoraCoinCreation.ts
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useWalletClient, usePublicClient } from 'wagmi';
-import { createCoin, DeployCurrency, validateMetadataURIContent } from '@zoralabs/coins-sdk';
+import { createCoin as zoraCoinSDKCreateCoin, DeployCurrency, validateMetadataURIContent, type ValidMetadataURI } from '@zoralabs/coins-sdk';
 import { Address } from 'viem';
 import toast from 'react-hot-toast';
 import { getCurrentNetworkConfig } from '@/config/networks';
@@ -27,32 +27,52 @@ export function useCreateCoin() {
         throw new Error('Wallet not connected');
       }
 
-      const { name, symbol, uri, payoutRecipient, platformReferrer, currency = DeployCurrency.ZORA } = params;
-
-      // Validate metadata URI
-      try {
-        await validateMetadataURIContent(uri);
-      } catch (error) {
-        throw new Error(`Invalid metadata URI: ${error}`);
+      // Determine currency based on network (matching working implementation)
+      const currentChainId = walletClient.chain?.id || networkConfig.chain.id;
+      
+      // Force ETH for Base Sepolia (84532), only use ZORA for Base mainnet (8453)
+      let finalCurrency: DeployCurrency;
+      if (currentChainId === 8453) {
+        finalCurrency = params.currency || DeployCurrency.ZORA;
+      } else {
+        // For Base Sepolia and any other network, force ETH
+        finalCurrency = DeployCurrency.ETH;
       }
+      
+      const { name, symbol, uri, payoutRecipient, platformReferrer } = params;
 
-      // Create coin parameters
+      // Validate metadata URI (skip validation to match working implementation)
+      // The SDK will handle validation internally
+      console.log('📋 Metadata URI:', uri);
+
+      // Debug information
+      console.log('🔍 Create coin debug info:');
+      console.log('- Chain ID:', currentChainId);
+      console.log('- Final Currency:', finalCurrency);
+      console.log('- Requested Currency:', params.currency);
+      console.log('- Wallet Chain:', walletClient.chain?.id);
+      console.log('- Public Client Chain:', publicClient?.chain?.id);
+
+      // Create coin parameters (matching working implementation)
       const coinParams = {
         name,
         symbol,
-        uri,
+        uri: uri as ValidMetadataURI,
         payoutRecipient: payoutRecipient || walletClient.account.address,
-        platformReferrer,
-        chainId: networkConfig.chain.id,
-        currency,
+        currency: finalCurrency,
+        chainId: currentChainId,
+        // Add platform referrer if available
+        ...(platformReferrer && { platformReferrer })
       };
 
-      // Create the coin
-      const result = await createCoin({
-        publicClient,
+      console.log('📋 Coin parameters:', coinParams);
+
+      // Create the coin using the same structure as the working simple test
+      const result = await zoraCoinSDKCreateCoin(
+        coinParams,
         walletClient,
-        ...coinParams,
-      });
+        publicClient
+      );
 
       return result;
     },
@@ -65,6 +85,7 @@ export function useCreateCoin() {
       // Invalidate and refetch relevant queries
       queryClient.invalidateQueries({ queryKey: ['zora-coins'] });
       queryClient.invalidateQueries({ queryKey: ['zora-profile'] });
+      queryClient.invalidateQueries({ queryKey: ['zora-profile', 'created-coins'] });
       
       return data;
     },

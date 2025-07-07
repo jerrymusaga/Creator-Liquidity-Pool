@@ -15,6 +15,7 @@ import { useWallet } from '@/hooks/useWallet'
 import { IPFSUploadResult } from '@/lib/ipfs'
 import { DeployCurrency } from '@zoralabs/coins-sdk'
 import toast from 'react-hot-toast'
+import { useRouter } from 'next/navigation'
 
 interface IPFSCoinCreationProps {
   onComplete?: () => void
@@ -56,15 +57,19 @@ export const IPFSCoinCreation: React.FC<IPFSCoinCreationProps> = ({
 }) => {
   const { address, isConnected, connectWallet, isOnCorrectNetwork, networkConfig } = useWallet()
   const { createCoinWithMetadata, isLoading } = useFullCoinCreation()
+  const router = useRouter()
   
   const [step, setStep] = useState(1)
+  // Set default currency based on network (Base mainnet uses ZORA, Base Sepolia uses ETH)
+  const defaultCurrency = networkConfig.chain.id === 8453 ? DeployCurrency.ZORA : DeployCurrency.ETH;
+  
   const [formData, setFormData] = useState<CoinFormData>({
     name: '',
     symbol: '',
     description: '',
     imageResult: null,
     category: 'content',
-    currency: DeployCurrency.ZORA,
+    currency: defaultCurrency,
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -134,7 +139,7 @@ export const IPFSCoinCreation: React.FC<IPFSCoinCreationProps> = ({
         name: formData.name,
         symbol: formData.symbol,
         payoutRecipient: address,
-        platformReferrer: formData.platformReferrer,
+        platformReferrer: formData.platformReferrer as `0x${string}` | undefined,
         currency: formData.currency,
       }
 
@@ -166,6 +171,12 @@ export const IPFSCoinCreation: React.FC<IPFSCoinCreationProps> = ({
 
       // Success handled by the hook
       onComplete?.()
+      
+      // Redirect to profile page to show the newly created coin
+      toast.success('Redirecting to your profile...', { duration: 2000 })
+      setTimeout(() => {
+        router.push('/profile')
+      }, 1500) // Small delay to let the success message show
       
     } catch (error: any) {
       console.error('Coin creation failed:', error)
@@ -492,6 +503,12 @@ export const IPFSCoinCreation: React.FC<IPFSCoinCreationProps> = ({
                   <div>
                     <span className="text-gray-400">Network:</span>
                     <span className="ml-2 font-medium">{networkConfig.name}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Currency:</span>
+                    <span className="ml-2 font-medium">
+                      {formData.currency === DeployCurrency.ETH ? 'ETH' : 'ZORA'}
+                    </span>
                   </div>
                   {formData.website && (
                     <div>

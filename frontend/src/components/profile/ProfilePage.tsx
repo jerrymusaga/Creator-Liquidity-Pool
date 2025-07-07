@@ -2,18 +2,22 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { 
-  Settings, Share, Copy, ExternalLink, Edit3, Crown,
-  TrendingUp, Users,Plus, Coins, Zap, Star, Play, Eye,
-  BarChart3, Calendar, Award, Target, Link as LinkIcon
+  Settings, Share, Copy, Crown, Users, Plus, Coins, 
+  Zap, Star, Play, Eye, BarChart3
 } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { useStore } from '@/stores/useStore'
+import { useUserProfile } from '@/hooks/useZoraProfile'
+import { useWallet } from '@/hooks/useWallet'
 import { Economy, CreatorCoin, ContentCoin } from '@/types'
 import toast from 'react-hot-toast'
+import { CoinDebugger } from '@/components/debug/CoinDebugger'
 
 export const ProfilePage: React.FC = () => {
   const { user, economies = [], coinHoldings = [], transactions = [] } = useStore()
+  const { address } = useWallet()
+  const { createdCoins, isLoading, refreshProfile } = useUserProfile(address)
   const [activeTab, setActiveTab] = useState<'overview' | 'coins' | 'content' | 'analytics'>('overview')
 
   if (!user) {
@@ -33,18 +37,21 @@ export const ProfilePage: React.FC = () => {
     )
   }
 
-  // Get user's created economies
+  // Get user's created coins from Zora SDK
+  const userCreatedCoins = createdCoins.data || []
+  const totalEarnings = 0 // TODO: Calculate from Zora data when available
+  const totalVolume = userCreatedCoins.reduce((sum, coin) => sum + parseFloat(coin.volume24h || '0'), 0)
+  const totalHolders = userCreatedCoins.reduce((sum, coin) => sum + (coin.holderCount || 0), 0)
+  
+  // Get user's created economies (fallback to store data)
   const userEconomies = economies?.filter(e => e.creator.id === user?.id) || []
-  const totalEarnings = userEconomies?.reduce((sum, e) => sum + e.totalEarnings, 0) || 0
-  const totalVolume = userEconomies?.reduce((sum, e) => sum + e.creatorCoin?.volume24h || 0, 0) || 0
-  const totalHolders = userEconomies?.reduce((sum, e) => sum + e.creatorCoin?.holderCount || 0, 0) || 0
   const allContentCoins = userEconomies?.flatMap(e => e.contentCoins || []) || []
 
   // Portfolio value
   const portfolioValue = coinHoldings?.reduce((sum, holding) => sum + holding.currentValue, 0) || 0
 
   const handleShare = () => {
-    const shareText = `Check out ${user.username}'s Creator Economy on @zora! 🚀\n\nCreator Coins: ${userEconomies.length}\nTotal Holders: ${totalHolders}\n\nJoin the economy:`
+    const shareText = `Check out ${user.username}'s Creator Economy on @zora! 🚀\n\nCreator Coins: ${userCreatedCoins.length}\nTotal Holders: ${totalHolders}\n\nJoin the economy:`
     
     if (navigator.share) {
       navigator.share({
@@ -122,18 +129,24 @@ export const ProfilePage: React.FC = () => {
           </div>
 
           {/* Stats Grid */}
-          {user.isCreator && userEconomies.length > 0 ? (
+          {user.isCreator && (userCreatedCoins.length > 0 || isLoading) ? (
             <div className="grid grid-cols-4 gap-3 mb-6">
               <div className="text-center">
-                <p className="text-lg font-bold text-vibe-purple">{userEconomies?.length || 0}</p>
+                <p className="text-lg font-bold text-vibe-purple">
+                  {isLoading ? '...' : userCreatedCoins.length}
+                </p>
                 <p className="text-xs text-gray-400">Coins</p>
               </div>
               <div className="text-center">
-                <p className="text-lg font-bold text-vibe-blue">{totalHolders}</p>
+                <p className="text-lg font-bold text-vibe-blue">
+                  {isLoading ? '...' : totalHolders}
+                </p>
                 <p className="text-xs text-gray-400">Holders</p>
               </div>
               <div className="text-center">
-                <p className="text-lg font-bold text-vibe-green">${(totalVolume / 1000).toFixed(1)}K</p>
+                <p className="text-lg font-bold text-vibe-green">
+                  {isLoading ? '...' : `$${(totalVolume / 1000).toFixed(1)}K`}
+                </p>
                 <p className="text-xs text-gray-400">Volume</p>
               </div>
               <div className="text-center">
@@ -190,6 +203,13 @@ export const ProfilePage: React.FC = () => {
 
       {/* Content */}
       <div className="px-4 pb-20">
+        {/* Debug Tool - Remove this after debugging */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mb-6">
+            <CoinDebugger />
+          </div>
+        )}
+        
         {/* Overview Tab */}
         {activeTab === 'overview' && (
           <motion.div
@@ -324,22 +344,71 @@ export const ProfilePage: React.FC = () => {
           >
             {user.isCreator ? (
               /* Creator's Coins */
-              userEconomies.length === 0 ? (
-                <Card className="p-8 text-center">
-                  <Coins className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-                  <h3 className="font-semibold mb-2">No Creator Coins Yet</h3>
-                  <p className="text-sm text-gray-400 mb-4">
-                    Launch your first Creator Coin to start building your economy
-                  </p>
-                  <Button>
-                    Create Your First Coin
+              <>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="font-semibold">Your Creator Coins</h3>
+                  <Button 
+                    onClick={refreshProfile} 
+                    variant="outline" 
+                    size="sm"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-vibe-purple"></div>
+                    ) : (
+                      'Refresh'
+                    )}
                   </Button>
-                </Card>
-              ) : (
-                userEconomies.map((economy) => (
-                  <CreatorCoinCard key={economy.id} economy={economy} />
-                ))
-              )
+                </div>
+                
+                {userEconomies.length === 0 && userCreatedCoins.length === 0 ? (
+                  <Card className="p-8 text-center">
+                    <Coins className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+                    <h3 className="font-semibold mb-2">No Creator Coins Yet</h3>
+                    <p className="text-sm text-gray-400 mb-4">
+                      Launch your first Creator Coin to start building your economy
+                    </p>
+                    <Button>
+                      Create Your First Coin
+                    </Button>
+                  </Card>
+                ) : isLoading ? (
+                  <Card className="p-8 text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-vibe-purple mx-auto mb-4"></div>
+                    <p className="text-gray-400">Loading your coins...</p>
+                  </Card>
+                ) : userCreatedCoins.length > 0 ? (
+                  userCreatedCoins.map((coin) => (
+                    <Card key={coin.address} className="p-4">
+                      <div className="flex items-center space-x-4">
+                        <img
+                          src={coin.image}
+                          alt={coin.symbol}
+                          className="w-12 h-12 rounded-full"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <h3 className="font-semibold">{coin.name}</h3>
+                            <span className="text-sm text-vibe-purple font-mono">${coin.symbol}</span>
+                          </div>
+                          <p className="text-sm text-gray-400 line-clamp-1">{coin.description}</p>
+                          <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                            <span>{coin.holderCount} holders</span>
+                            <span>${(parseFloat(coin.volume24h) / 1000).toFixed(1)}K volume</span>
+                            <span className={`${parseFloat(coin.priceChange24h.toString()) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                              {parseFloat(coin.priceChange24h.toString()) >= 0 ? '+' : ''}{coin.priceChange24h}%
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  ))
+                ) : (
+                  userEconomies.map((economy) => (
+                    <CreatorCoinCard key={economy.id} economy={economy} />
+                  ))
+                )}
+              </>
             ) : (
               /* Fan's Holdings */
               !coinHoldings || coinHoldings.length === 0 ? (
