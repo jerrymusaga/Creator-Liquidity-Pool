@@ -55,11 +55,11 @@ export const Welcome: React.FC<WelcomeProps> = ({ onComplete }) => {
               transition={{ duration: 2, repeat: Infinity }}
               className="w-24 h-24 bg-gradient-vibe rounded-full flex items-center justify-center mx-auto mb-8"
             >
-              <span className="text-white font-bold text-4xl">V</span>
+              <span className="text-white font-bold text-3xl">VS</span>
             </motion.div>
 
             <h1 className="text-4xl font-bold mb-4 bg-gradient-vibe bg-clip-text text-transparent">
-              Vibe
+              VibeStream
             </h1>
             <p className="text-xl text-gray-300 mb-12">
               Creators and fans earn together!

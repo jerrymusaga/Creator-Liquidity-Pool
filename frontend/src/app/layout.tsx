@@ -21,8 +21,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Vibe - Creator Coins",
-  description: "Creator economies with automatic V4 rewards",
+  title: "VibeStream - Creator Coins",
+  description: "VibeStream - Creator economies with automatic V4 rewards",
 };
 
 export default function RootLayout({

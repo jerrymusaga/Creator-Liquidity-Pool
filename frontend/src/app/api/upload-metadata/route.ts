@@ -30,9 +30,9 @@ export async function POST(request: NextRequest) {
           body: JSON.stringify({
             pinataContent: metadata,
             pinataMetadata: {
-              name: `${metadata.name} - Vibe Creator Coin Metadata`,
+              name: `${metadata.name} - VibeStream Creator Coin Metadata`,
               keyvalues: {
-                platform: 'vibe',
+                platform: 'vibestream',
                 type: 'creator_coin_metadata',
                 creator: metadata.properties?.creator || 'unknown'
               }

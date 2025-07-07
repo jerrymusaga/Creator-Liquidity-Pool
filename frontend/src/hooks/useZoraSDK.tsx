@@ -241,10 +241,10 @@ export function useZoraSDK() {
         name: params.name,
         description: params.description,
         image: params.image,
-        external_url: `https://vibe.app/creator/${address}`,
+        external_url: `https://vibestream.app/creator/${address}`,
         properties: {
           creator: address,
-          platform: "Vibe",
+          platform: "VibeStream",
           version: "v4",
           auto_rewards: true,
           category: "creator_coin"
@@ -256,7 +256,7 @@ export function useZoraSDK() {
           },
           {
             trait_type: "Platform", 
-            value: "Vibe"
+            value: "VibeStream"
           },
           {
             trait_type: "Version",

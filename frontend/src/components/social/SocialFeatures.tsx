@@ -98,12 +98,12 @@ export const SocialFeatures: React.FC<SocialFeaturesProps> = ({
   }
 
   const handleShare = async () => {
-    const shareText = `Check out ${creator?.username || 'this creator'}'s coin on Vibe! 🚀`
+    const shareText = `Check out ${creator?.username || 'this creator'}'s coin on VibeStream! 🚀`
     
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `${creator?.username || 'Creator'} on Vibe`,
+          title: `${creator?.username || 'Creator'} on VibeStream`,
           text: shareText,
           url: window.location.href
         })

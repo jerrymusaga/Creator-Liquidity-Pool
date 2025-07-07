@@ -69,7 +69,7 @@ export const WalletPage: React.FC = () => {
         <div className="px-4 py-4">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-xl font-bold">Vibe Wallet</h1>
+              <h1 className="text-xl font-bold">VibeStream Wallet</h1>
               <p className="text-sm text-gray-400">Your Creator Coin Portfolio</p>
             </div>
             <button
@@ -232,7 +232,7 @@ export const WalletPage: React.FC = () => {
               </div>
               
               <div className="text-xs text-gray-500">
-                You earn 15% of trading fees when users trade via CLP platform
+                You earn 15% of trading fees when users trade via VibeStream platform
               </div>
             </Card>
 

@@ -30,7 +30,7 @@ export const Header: React.FC = () => {
                 }}
                 className="w-10 h-10 bg-gradient-vibe rounded-full flex items-center justify-center"
               >
-                <span className="text-white font-bold text-xl">V</span>
+                <span className="text-white font-bold text-sm">VS</span>
               </motion.div>
               
               {/* Subtle glow effect */}
@@ -39,7 +39,7 @@ export const Header: React.FC = () => {
             
             <div>
               <span className="text-xl font-bold bg-gradient-vibe bg-clip-text text-transparent">
-                Vibe
+                VibeStream
               </span>
               <div className="text-xs text-gray-500 -mt-1">
                 Creator Coins
