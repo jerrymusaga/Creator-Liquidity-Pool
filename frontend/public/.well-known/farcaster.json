@@ -2,25 +2,25 @@
   "frame": {
     "version": "1",
     "name": "VibeStream",
-    "iconUrl": "https://vibestream.vercel.app/vibestreamlogo1.png",
-    "splashImageUrl": "https://vibestream.vercel.app/vibestreamlogo1.png",
+    "iconUrl": "https://vibestream-vert.vercel.app/vibestreamlogo1.png",
+    "splashImageUrl": "https://vibestream-vert.vercel.app/vibestreamlogo1.png",
     "splashBackgroundColor": "#8B5CF6",
     "homeUrl": "https://ads-bazaar.vercel.app/",
-    "imageUrl": "https://vibestream.vercel.app/vibestreamlogo1.png",
+    "imageUrl": "https://vibestream-vert.vercel.app/vibestreamlogo1.png",
     "buttonTitle": "🚩 Let's Explore",
     "subtitle": " Decentralized Creator Economy Platform",
     "description": "Where creativity meets crypto - Build, trade, and earn with Creator Coins on Base",
     "screenshotUrls": [
-      "https://vibestream.vercel.app/vibestreamlogo1.png",
-      "https://vibestream.vercel.app/vibestreamlogo1.png",
-      "https://vibestream.vercel.app/vibestreamlogo1.png"
+      "https://vibestream-vert.vercel.app/vibestreamlogo1.png",
+      "https://vibestream-vert.vercel.app/vibestreamlogo1.png",
+      "https://vibestream-vert.vercel.app/vibestreamlogo1.png"
     ],
     "primaryCategory": "social",
     "tags": ["jobs", "influencers", "warpcast", "earn", "businesses"],
-    "heroImageUrl": "https://vibestream.vercel.app/vibestreamlogo1.png",
+    "heroImageUrl": "https://vibestream-vert.vercel.app/vibestreamlogo1.png",
     "tagline": " Decentralized Creator Economy Platform",
     "ogTitle": "VibeStream",
     "ogDescription": "Build, trade, and earn with Creator Coins",
-    "ogImageUrl": "https://vibestream.vercel.app/vibestreamlogo1.png"
+    "ogImageUrl": "https://vibestream-vert.vercel.app/vibestreamlogo1.png"
   }
 }
