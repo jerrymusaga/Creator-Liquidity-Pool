@@ -13,15 +13,13 @@ export async function GET(
 
     // Get coin data from Zora
     const coinData = await getCoin({ 
-      coinAddress: address as `0x${string}`,
-      chainId: 8453 // Base mainnet
+      address: address as `0x${string}`
     })
 
-    if (!coinData) {
+    const coin = coinData?.data?.zora20Token
+    if (!coin) {
       return new NextResponse('Coin not found', { status: 404 })
     }
-
-    const coin = coinData.coin
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
 
     // Generate frame metadata based on action
