@@ -1,7 +1,7 @@
 import { tradeCoin, TradeParameters, createTradeCall } from '@zoralabs/coins-sdk'
 import { parseEther, createPublicClient, http } from 'viem'
 import { base } from 'viem/chains'
-import type { WalletClient, PublicClient } from 'viem'
+import type { WalletClient } from 'viem'
 
 export interface FrameTradeParams {
   coinAddress: string
@@ -20,7 +20,7 @@ export interface TradeQuote {
 }
 
 export class FrameTradingService {
-  private publicClient: PublicClient
+  private publicClient: any
 
   constructor() {
     this.publicClient = createPublicClient({
@@ -72,10 +72,10 @@ export class FrameTradingService {
 
       return {
         amountIn: tradeParameters.amountIn.toString(),
-        amountOut: quote.amountOut?.toString() || '0',
-        priceImpact: quote.priceImpact || 0,
-        gasEstimate: quote.gasEstimate?.toString() || '0',
-        route: quote.route || []
+        amountOut: quote.quote?.amountOut?.toString() || '0',
+        priceImpact: 0, // Not available in the quote structure
+        gasEstimate: '0', // Not available in the quote structure
+        route: [] // Not available in the quote structure
       }
     } catch (error) {
       console.error('Quote generation failed:', error)

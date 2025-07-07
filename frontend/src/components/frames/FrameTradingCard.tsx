@@ -55,10 +55,9 @@ export const FrameTradingCard: React.FC<FrameTradingCardProps> = ({
   const loadCoinData = async () => {
     try {
       const result = await getCoin({ 
-        coinAddress: coinAddress as `0x${string}`,
-        chainId: 8453 
+        address: coinAddress as `0x${string}`
       })
-      setCoinData(result?.coin)
+      setCoinData(result?.data?.zora20Token)
     } catch (err) {
       console.error('Failed to load coin data:', err)
       setError('Failed to load coin data')
