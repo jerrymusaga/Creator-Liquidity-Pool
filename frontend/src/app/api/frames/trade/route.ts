@@ -130,9 +130,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       quote: {
         amountIn: amountIn.toString(),
-        amountOut: quote.amountOut?.toString() || '0',
-        priceImpact: quote.priceImpact || 0,
-        gasEstimate: quote.gasEstimate?.toString() || '0',
+        amountOut: quote.quote?.amountOut?.toString() || '0',
+        slippage: quote.quote?.slippage || 0,
       }
     })
 
