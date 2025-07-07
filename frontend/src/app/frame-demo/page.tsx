@@ -90,18 +90,19 @@ export default function FrameDemoPage() {
                         ? 'border-purple-500 bg-purple-500/10' 
                         : 'border-gray-700 hover:border-purple-400'
                     }`}
-                    onClick={() => setSelectedCoin(coin.address)}
                   >
-                    <div className="flex items-center space-x-3 mb-2">
-                      <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center">
-                        🪙
+                    <div onClick={() => setSelectedCoin(coin.address)}>
+                      <div className="flex items-center space-x-3 mb-2">
+                        <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center">
+                          🪙
+                        </div>
+                        <div>
+                          <h3 className="font-bold">{coin.symbol}</h3>
+                          <p className="text-sm text-gray-400">{coin.name}</p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-bold">{coin.symbol}</h3>
-                        <p className="text-sm text-gray-400">{coin.name}</p>
-                      </div>
+                      <p className="text-sm text-gray-300">{coin.description}</p>
                     </div>
-                    <p className="text-sm text-gray-300">{coin.description}</p>
                   </Card>
                 </motion.div>
               ))}
