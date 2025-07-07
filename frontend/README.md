@@ -1,4 +1,4 @@
-# **Vibestream** - Decentralized Creator Economy Platform
+# **VibeStream** - Decentralized Creator Economy Platform
 
 > *Where creativity meets crypto - Build, trade, and earn with Creator Coins on Base*
 
@@ -6,7 +6,7 @@
 
 ### **The Creator Economy Crisis**
 
-The current creator economy is fundamentally broken, with several critical issues affecting both creators and their communities:
+The current creator economy is fundamentally broken, with several critical issues affecting both creators and their communities
 
 **For Creators:**
 - **Platform Dependency**: Creators rely on centralized platforms (YouTube, TikTok, Instagram) that can change algorithms, demonetize content, or ban accounts without warning
