@@ -16,16 +16,16 @@ export async function GET(
 
     // Get coin data
     const coinData = await getCoin({ 
-      coinAddress: address as `0x${string}`,
-      chainId: 8453 
+      address: address as `0x${string}`
     })
 
-    if (!coinData?.coin) {
+    const coin = coinData?.data?.zora20Token
+    if (!coin) {
       return new Response('Coin not found', { status: 404 })
     }
 
-    const coin = coinData.coin
-    const price = coin.currentPrice ? parseFloat(coin.currentPrice) : 0
+    // Use the correct property for price
+    const price = (coin as any).priceUSD ? parseFloat((coin as any).priceUSD) : 0
     const priceDisplay = price > 0 ? `$${price.toFixed(6)}` : 'N/A'
     const marketCap = coin.marketCap ? `$${(parseFloat(coin.marketCap) / 1000000).toFixed(1)}M` : 'N/A'
 
