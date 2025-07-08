@@ -1,7 +1,7 @@
 // hooks/useZoraCoinCreation.ts
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useWalletClient, usePublicClient } from 'wagmi';
-import { createCoin as zoraCoinSDKCreateCoin, DeployCurrency, validateMetadataURIContent, type ValidMetadataURI } from '@zoralabs/coins-sdk';
+import { createCoinCall, DeployCurrency, validateMetadataURIContent, type ValidMetadataURI } from '@zoralabs/coins-sdk';
 import { Address } from 'viem';
 import toast from 'react-hot-toast';
 import { getCurrentNetworkConfig } from '@/config/networks';
@@ -18,7 +18,6 @@ interface CreateCoinParams {
 export function useCreateCoin() {
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient();
-  const queryClient = useQueryClient();
   const networkConfig = getCurrentNetworkConfig();
 
   return useMutation({
@@ -41,19 +40,15 @@ export function useCreateCoin() {
       
       const { name, symbol, uri, payoutRecipient, platformReferrer } = params;
 
-      // Validate metadata URI (skip validation to match working implementation)
-      // The SDK will handle validation internally
-      console.log('📋 Metadata URI:', uri);
-
       // Debug information
-      console.log('🔍 Create coin debug info:');
+      console.log('🔍 Create coin debug info (WAGMI):');
       console.log('- Chain ID:', currentChainId);
       console.log('- Final Currency:', finalCurrency);
       console.log('- Requested Currency:', params.currency);
       console.log('- Wallet Chain:', walletClient.chain?.id);
       console.log('- Public Client Chain:', publicClient?.chain?.id);
 
-      // Create coin parameters (matching working implementation)
+      // Create coin parameters for WAGMI
       const coinParams = {
         name,
         symbol,
@@ -65,33 +60,30 @@ export function useCreateCoin() {
         ...(platformReferrer && { platformReferrer })
       };
 
-      console.log('📋 Coin parameters:', coinParams);
+      console.log('📋 Coin parameters (WAGMI):', coinParams);
 
-      // Create the coin using the same structure as the working simple test
-      const result = await zoraCoinSDKCreateCoin(
-        coinParams,
-        walletClient,
-        publicClient
-      );
+      // Prepare contract call using WAGMI method
+      const contractCallParams = await createCoinCall(coinParams);
+      
+      console.log('📋 Contract call params:', contractCallParams);
 
-      return result;
+      // Return the contract call config for external use
+      return {
+        contractCallParams,
+        coinParams
+      };
     },
     onMutate: () => {
-      toast.loading('Creating your coin...', { id: 'create-coin' });
+      toast.loading('Preparing coin creation...', { id: 'create-coin' });
     },
     onSuccess: (data) => {
-      toast.success('Coin created successfully!', { id: 'create-coin' });
-      
-      // Invalidate and refetch relevant queries
-      queryClient.invalidateQueries({ queryKey: ['zora-coins'] });
-      queryClient.invalidateQueries({ queryKey: ['zora-profile'] });
-      queryClient.invalidateQueries({ queryKey: ['zora-profile', 'created-coins'] });
+      toast.success('Contract prepared successfully!', { id: 'create-coin' });
       
       return data;
     },
     onError: (error: any) => {
-      console.error('Coin creation failed:', error);
-      toast.error(`Failed to create coin: ${error.message}`, { id: 'create-coin' });
+      console.error('Coin creation preparation failed:', error);
+      toast.error(`Failed to prepare coin creation: ${error.message}`, { id: 'create-coin' });
     },
   });
 }

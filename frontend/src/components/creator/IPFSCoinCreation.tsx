@@ -10,7 +10,7 @@ import {
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { ImageUpload } from '@/components/ui/ImageUpload'
-import { useFullCoinCreation } from '@/hooks/useZoraCoinCreation'
+import { useFullCoinCreationWagmi } from '@/hooks/useZoraCoinCreationWagmi'
 import { useWallet } from '@/hooks/useWallet'
 import { IPFSUploadResult } from '@/lib/ipfs'
 import { frameUtils } from '@/lib/frameUtils'
@@ -53,7 +53,7 @@ export const IPFSCoinCreation: React.FC<IPFSCoinCreationProps> = ({
   onBack 
 }) => {
   const { address, isConnected, connectWallet, isOnCorrectNetwork, networkConfig } = useWallet()
-  const { createCoinWithMetadata, isLoading } = useFullCoinCreation()
+  const { createCoinWithMetadata, isLoading } = useFullCoinCreationWagmi()
   const router = useRouter()
   
   const [step, setStep] = useState(1)
