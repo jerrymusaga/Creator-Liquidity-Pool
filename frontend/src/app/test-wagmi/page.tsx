@@ -7,6 +7,7 @@ import { CoinCreationSimplified } from '@/components/examples/CoinCreationSimpli
 import { CoinCreationTroubleshooter } from '@/components/examples/CoinCreationTroubleshooter';
 import { CoinCreationMinimal } from '@/components/examples/CoinCreationMinimal';
 import { CoinCreationFixed } from '@/components/examples/CoinCreationFixed';
+import { CoinCreationFinal } from '@/components/examples/CoinCreationFinal';
 
 export default function TestWagmiPage() {
   return (
@@ -48,6 +49,8 @@ export default function TestWagmiPage() {
             </ul>
           </div>
 
+          <CoinCreationFinal />
+          
           <CoinCreationFixed />
           
           <CoinCreationMinimal />
