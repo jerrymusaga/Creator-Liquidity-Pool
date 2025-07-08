@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { useAccount, useSimulateContract, useWriteContract, useChainId } from 'wagmi';
 import { createCoinCall, DeployCurrency, type ValidMetadataURI } from '@zoralabs/coins-sdk';
+import { Address } from 'viem';
 import { base, baseSepolia } from 'viem/chains';
 import toast from 'react-hot-toast';
 
@@ -17,7 +18,7 @@ export const CoinCreationFixed: React.FC = () => {
   const [isPreparingContract, setIsPreparingContract] = useState(false);
 
   // Create a valid platform referrer instead of zero address
-  const VALID_PLATFORM_REFERRER = "0x131EC028Bb8Bd936A3416635777D905497F3D21f"; // Use your own address as referrer
+  const VALID_PLATFORM_REFERRER = "0x131EC028Bb8Bd936A3416635777D905497F3D21f" as Address; // Use your own address as referrer
 
   const createFixedCoinParams = () => {
     if (!address) return null;
