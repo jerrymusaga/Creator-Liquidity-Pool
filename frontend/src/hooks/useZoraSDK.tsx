@@ -326,12 +326,12 @@ export function useZoraSDK() {
           platformReferrer: process.env.NEXT_PUBLIC_VIBE_PLATFORM_ADDRESS as Address
         }),
         // Add optional initial purchase if provided
-        ...(params.initialPurchaseWei && {
-          initialPurchase: {
-            currency: InitialPurchaseCurrency.ETH,
-            amount: params.initialPurchaseWei
-          }
-        })
+        // ...(params.initialPurchaseWei && {
+        //   initialPurchase: {
+        //     currency: InitialPurchaseCurrency.ETH,
+        //     amount: params.initialPurchaseWei
+        //   }
+        // })
       }
 
       // Log network information for debugging
