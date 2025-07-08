@@ -5,7 +5,7 @@
     "iconUrl": "https://vibestream-vert.vercel.app/vibestreamlogo1.png",
     "splashImageUrl": "https://vibestream-vert.vercel.app/vibestreamlogo1.png",
     "splashBackgroundColor": "#8B5CF6",
-    "homeUrl": "https://ads-bazaar.vercel.app/",
+    "homeUrl": "https://vibestream-vert.vercel.app/",
     "imageUrl": "https://vibestream-vert.vercel.app/vibestreamlogo1.png",
     "buttonTitle": "🚩 Let's Explore",
     "subtitle": " Decentralized Creator Economy Platform",
@@ -16,7 +16,7 @@
       "https://vibestream-vert.vercel.app/vibestreamlogo1.png"
     ],
     "primaryCategory": "social",
-    "tags": ["jobs", "influencers", "warpcast", "earn", "businesses"],
+    "tags": ["creators", "fans", "trade", "earn", "zora", "zora-coin"],
     "heroImageUrl": "https://vibestream-vert.vercel.app/vibestreamlogo1.png",
     "tagline": " Decentralized Creator Economy Platform",
     "ogTitle": "VibeStream",

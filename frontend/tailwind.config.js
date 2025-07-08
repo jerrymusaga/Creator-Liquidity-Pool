@@ -12,6 +12,7 @@ module.exports = {
         'vibe-pink': '#EC4899',
         'vibe-green': '#10B981',
         'vibe-orange': '#F59E0B',
+        'vibe-gold': '#F59E0B',
       },
       backgroundImage: {
         'gradient-vibe': 'linear-gradient(135deg, #8B5CF6 0%, #3B82F6 100%)',
