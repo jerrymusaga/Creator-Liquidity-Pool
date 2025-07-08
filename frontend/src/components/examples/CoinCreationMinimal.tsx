@@ -192,7 +192,7 @@ export const CoinCreationMinimal: React.FC = () => {
 
         <div className="bg-gray-800 rounded-lg p-4">
           <div className="text-sm space-y-1">
-            <p><span className="text-gray-400">Address:</span> {address.slice(0, 8)}...{address.slice(-6)}</p>
+            <p><span className="text-gray-400">Address:</span> {address?.slice(0, 8)}...{address?.slice(-6)}</p>
             <p><span className="text-gray-400">Chain ID:</span> {chainId}</p>
             <p><span className="text-gray-400">Network:</span> {chainId === base.id ? 'Base Mainnet' : chainId === baseSepolia.id ? 'Base Sepolia' : 'Other'}</p>
           </div>
