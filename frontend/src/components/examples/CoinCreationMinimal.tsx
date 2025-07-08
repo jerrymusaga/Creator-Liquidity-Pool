@@ -131,27 +131,66 @@ export const CoinCreationMinimal: React.FC = () => {
       }
     }
 
-    // Test 5: Try different URI format
+    // Test 5: Try proper data URI with image field
     try {
+      // Create proper metadata with image field
+      const metadata = {
+        name: "Test Data URI",
+        description: "Test coin with data URI",
+        image: "https://via.placeholder.com/400x400.png?text=Test"
+      };
+      const metadataBase64 = btoa(JSON.stringify(metadata));
+      
       const dataUriParams = {
         name: "Test Data URI",
         symbol: "TDU",
-        uri: "data:application/json;base64,eyJuYW1lIjoiVGVzdCIsImRlc2NyaXB0aW9uIjoiVGVzdCBjb2luIn0=" as ValidMetadataURI,
+        uri: `data:application/json;base64,${metadataBase64}` as ValidMetadataURI,
         payoutRecipient: address,
         currency: DeployCurrency.ETH,
       };
 
-      console.log('🧪 Test 5: With data URI');
+      console.log('🧪 Test 5: With proper data URI (includes image)');
       console.log('Params:', dataUriParams);
+      console.log('Metadata:', metadata);
       
       const result5 = await createCoinCall(dataUriParams);
       console.log('✅ Test 5 SUCCESS:', result5);
       
-      results.push({ test: 'With data URI', success: true });
+      results.push({ test: 'With data URI (proper metadata)', success: true });
     } catch (error) {
       console.error('❌ Test 5 FAILED:', error);
       results.push({ 
-        test: 'With data URI', 
+        test: 'With data URI (proper metadata)', 
+        success: false, 
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+
+    // Test 6: Check if the IPFS URI has proper metadata
+    try {
+      console.log('🧪 Test 6: Checking IPFS metadata validity');
+      const ipfsUrl = "https://ipfs.io/ipfs/bafybeigoxzqzbnxsn35vq7lls3ljxdcwjafxvbvkivprsodzrptpiguysy";
+      
+      // This is just to test the URI format, not actually fetch
+      const ipfsParams = {
+        name: "Test IPFS Check",
+        symbol: "TIC",
+        uri: "ipfs://bafybeigoxzqzbnxsn35vq7lls3ljxdcwjafxvbvkivprsodzrptpiguysy" as ValidMetadataURI,
+        payoutRecipient: address,
+        currency: DeployCurrency.ETH,
+      };
+
+      console.log('IPFS URL to check:', ipfsUrl);
+      console.log('Params:', ipfsParams);
+      
+      const result6 = await createCoinCall(ipfsParams);
+      console.log('✅ Test 6 SUCCESS:', result6);
+      
+      results.push({ test: 'IPFS metadata validation', success: true });
+    } catch (error) {
+      console.error('❌ Test 6 FAILED:', error);
+      results.push({ 
+        test: 'IPFS metadata validation', 
         success: false, 
         error: error instanceof Error ? error.message : String(error)
       });
