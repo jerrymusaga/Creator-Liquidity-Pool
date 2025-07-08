@@ -5,7 +5,6 @@ import { Address } from 'viem'
 import { 
   DeployCurrency,
   type CreateCoinArgs,
-  InitialPurchaseCurrency,
   getCoin,
   getCoinsTopVolume24h,
   getCoinsNew,
@@ -14,7 +13,8 @@ import {
   createCoin as zoraCoinSDKCreateCoin,
   type ValidMetadataURI
 } from '@zoralabs/coins-sdk'
-import { getCurrentNetworkConfig } from '@/config/networks'
+import { getCurrentNetworkConfig, isCorrectNetwork } from '@/config/networks'
+import { FrameTradingService } from '@/lib/frameTrading'
 import toast from 'react-hot-toast'
 
 
@@ -57,6 +57,8 @@ export function useZoraSDK() {
   const { data: walletClient } = useWalletClient()
   const publicClient = usePublicClient({ chainId: walletClient?.chain?.id })
   const { switchChain } = useSwitchChain()
+  
+  const isOnCorrectNetwork = isCorrectNetwork(chain?.id)
   
   // The issue: publicClient might be on wrong network
   console.log('🚨 PUBLIC CLIENT DEBUG:')
@@ -629,31 +631,116 @@ export function useZoraSDK() {
   /**
    * Buy a coin (this would integrate with Uniswap V4 in production)
    */
-  const buyCoin = async (_coinAddress: string, _ethAmount: number): Promise<boolean> => {
+  const buyCoin = async (coinAddress: string, ethAmount: number): Promise<boolean> => {
     if (!isConnected || !address || !walletClient) {
       toast.error('Please connect your wallet first')
       return false
     }
 
+    if (!isOnCorrectNetwork) {
+      toast.error(`Please switch to ${networkConfig.name}`)
+      return false
+    }
+
     try {
-      // This would integrate with Uniswap V4 router for actual swaps
-      // For now, we'll simulate the transaction
+      toast.loading('Executing trade...', { id: 'trade-loading' })
       
-      toast.success(
-        <div className="flex items-center">
-          <span className="mr-2">⚠️</span>
-          <div>
-            <p className="font-semibold">Feature Coming Soon</p>
-            <p className="text-xs text-gray-400">Real trading via Uniswap V4 integration</p>
-          </div>
-        </div>,
-        { duration: 3000 }
+      const tradingService = new FrameTradingService()
+      const result = await tradingService.executeTrade(
+        {
+          coinAddress,
+          tradeType: 'buy',
+          amount: ethAmount.toString(),
+          userAddress: address,
+          slippage: 0.5 // 0.5% slippage tolerance
+        },
+        walletClient,
+        { address }
       )
-      
-      return true
+
+      toast.dismiss('trade-loading')
+
+      if (result.success) {
+        toast.success(
+          <div className="flex items-center">
+            <span className="mr-2">✅</span>
+            <div>
+              <p className="font-semibold">Trade Successful!</p>
+              <p className="text-xs text-gray-400">
+                Bought {ethAmount} ETH worth of tokens
+              </p>
+            </div>
+          </div>,
+          { duration: 5000 }
+        )
+        return true
+      } else {
+        toast.error(`Trade failed: ${result.error}`)
+        return false
+      }
 
     } catch (error: any) {
+      toast.dismiss('trade-loading')
       console.error('Buy transaction failed:', error)
+      toast.error(`Transaction failed: ${error.message}`)
+      return false
+    }
+  }
+
+  /**
+   * Sell a coin
+   */
+  const sellCoin = async (coinAddress: string, tokenAmount: number): Promise<boolean> => {
+    if (!isConnected || !address || !walletClient) {
+      toast.error('Please connect your wallet first')
+      return false
+    }
+
+    if (!isOnCorrectNetwork) {
+      toast.error(`Please switch to ${networkConfig.name}`)
+      return false
+    }
+
+    try {
+      toast.loading('Executing sell order...', { id: 'sell-loading' })
+      
+      const tradingService = new FrameTradingService()
+      const result = await tradingService.executeTrade(
+        {
+          coinAddress,
+          tradeType: 'sell',
+          amount: tokenAmount.toString(),
+          userAddress: address,
+          slippage: 0.5 // 0.5% slippage tolerance
+        },
+        walletClient,
+        { address }
+      )
+
+      toast.dismiss('sell-loading')
+
+      if (result.success) {
+        toast.success(
+          <div className="flex items-center">
+            <span className="mr-2">✅</span>
+            <div>
+              <p className="font-semibold">Sell Successful!</p>
+              <p className="text-xs text-gray-400">
+                Sold {tokenAmount} tokens
+              </p>
+            </div>
+          </div>,
+          { duration: 5000 }
+        )
+        return true
+      } else {
+        toast.error(`Sell failed: ${result.error}`)
+        return false
+      }
+
+    } catch (error: any) {
+      toast.dismiss('sell-loading')
+      console.error('Sell transaction failed:', error)
       toast.error(`Transaction failed: ${error.message}`)
       return false
     }
@@ -696,6 +783,7 @@ export function useZoraSDK() {
     getNewCoins,
     getTopGainers,
     buyCoin,
+    sellCoin,
     estimateCreateCoinGas,
     
     // Utilities
@@ -709,6 +797,7 @@ export function useZoraSDK() {
     // Network info
     networkConfig,
     isConnected,
+    isOnCorrectNetwork,
     address
   }
 }

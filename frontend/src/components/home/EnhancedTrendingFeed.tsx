@@ -77,26 +77,28 @@ export const EnhancedTrendingFeed: React.FC<EnhancedTrendingFeedProps> = ({ onCo
     : 0
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center py-8"
+        className="text-center py-4 sm:py-8 px-2"
       >
-        <h1 className="text-4xl font-bold mb-4 flex items-center justify-center">
-          <Flame className="w-8 h-8 text-orange-400 mr-3" />
-          Trending{' '}
-          <span className="bg-gradient-vibe bg-clip-text text-transparent ml-2">
-            Now
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4 flex items-center justify-center">
+          <Flame className="w-6 h-6 sm:w-8 sm:h-8 text-orange-400 mr-2 sm:mr-3" />
+          <span className="flex flex-col sm:flex-row items-center">
+            <span>Trending</span>
+            <span className="bg-gradient-vibe bg-clip-text text-transparent sm:ml-2">
+              Now
+            </span>
           </span>
         </h1>
-        <p className="text-gray-400 text-lg mb-6">
+        <p className="text-gray-400 text-sm sm:text-base lg:text-lg mb-4 sm:mb-6 max-w-2xl mx-auto">
           Live rankings of the hottest Creator Coins on {networkConfig.name}
         </p>
 
         {/* Global Stats */}
-        <div className="grid grid-cols-3 gap-6 max-w-md mx-auto mb-6">
+        <div className="grid grid-cols-3 gap-3 sm:gap-6 max-w-sm sm:max-w-md mx-auto mb-4 sm:mb-6">
           <div className="text-center">
             <p className="text-2xl font-bold text-vibe-purple">{coins.length}</p>
             <p className="text-sm text-gray-400">Trending Coins</p>

@@ -66,34 +66,34 @@ export const WalletPage: React.FC = () => {
     <div className="min-h-screen bg-gray-900 text-white">
       {/* Header */}
       <div className="sticky top-0 z-50 bg-gray-900/95 backdrop-blur-sm border-b border-gray-800">
-        <div className="px-4 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-xl font-bold">VibeStream Wallet</h1>
-              <p className="text-sm text-gray-400">Your Creator Coin Portfolio</p>
+        <div className="px-2 sm:px-4 py-3 sm:py-4">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-lg sm:text-xl font-bold truncate">VibeStream Wallet</h1>
+              <p className="text-xs sm:text-sm text-gray-400 truncate">Your Creator Coin Portfolio</p>
             </div>
             <button
               onClick={() => setShowBalances(!showBalances)}
-              className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-800 rounded-lg transition-colors flex-shrink-0"
             >
-              {showBalances ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+              {showBalances ? <Eye className="w-4 h-4 sm:w-5 sm:h-5" /> : <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" />}
             </button>
           </div>
 
           {/* Portfolio Summary */}
-          <Card className="p-4 bg-gradient-card mb-4">
+          <Card className="p-3 sm:p-4 bg-gradient-card mb-3 sm:mb-4">
             <div className="text-center">
-              <p className="text-sm text-gray-400 mb-1">Total Portfolio Value</p>
-              <p className="text-2xl font-bold mb-2">
+              <p className="text-xs sm:text-sm text-gray-400 mb-1">Total Portfolio Value</p>
+              <p className="text-xl sm:text-2xl font-bold mb-2">
                 {showBalances ? `$${totalPortfolioValue.toFixed(2)}` : '•••••'}
               </p>
-              <div className={`flex items-center justify-center text-sm ${
+              <div className={`flex items-center justify-center text-xs sm:text-sm ${
                 totalPnL >= 0 ? 'text-green-400' : 'text-red-400'
               }`}>
                 {totalPnL >= 0 ? (
-                  <TrendingUp className="w-4 h-4 mr-1" />
+                  <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                 ) : (
-                  <TrendingDown className="w-4 h-4 mr-1" />
+                  <TrendingDown className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                 )}
                 <span>
                   {showBalances 

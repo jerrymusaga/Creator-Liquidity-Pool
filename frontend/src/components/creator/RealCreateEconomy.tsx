@@ -226,7 +226,7 @@ export const RealCreateEconomy: React.FC<RealCreateEconomyProps> = ({ onComplete
                       value={formData.name}
                       onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                       placeholder="e.g., Jake's Gaming Economy"
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 focus:ring-2 focus:ring-vibe-purple focus:border-transparent"
+                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-vibe-purple focus:border-transparent"
                       required
                     />
                   </div>
@@ -239,7 +239,7 @@ export const RealCreateEconomy: React.FC<RealCreateEconomyProps> = ({ onComplete
                       onChange={(e) => setFormData(prev => ({ ...prev, symbol: e.target.value.toUpperCase() }))}
                       placeholder="e.g., JAKE"
                       maxLength={6}
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 focus:ring-2 focus:ring-vibe-purple focus:border-transparent"
+                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-vibe-purple focus:border-transparent"
                       required
                     />
                     <p className="text-xs text-gray-500 mt-1">Max 6 characters</p>
@@ -253,7 +253,7 @@ export const RealCreateEconomy: React.FC<RealCreateEconomyProps> = ({ onComplete
                     onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                     placeholder="Describe your creator economy..."
                     rows={4}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 focus:ring-2 focus:ring-vibe-purple focus:border-transparent resize-none"
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-vibe-purple focus:border-transparent resize-none"
                     required
                   />
                 </div>
@@ -265,7 +265,7 @@ export const RealCreateEconomy: React.FC<RealCreateEconomyProps> = ({ onComplete
                     value={formData.image}
                     onChange={(e) => setFormData(prev => ({ ...prev, image: e.target.value }))}
                     placeholder="https://example.com/image.jpg"
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 focus:ring-2 focus:ring-vibe-purple focus:border-transparent"
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-vibe-purple focus:border-transparent"
                   />
                   {formData.image && (
                     <div className="mt-3">
@@ -290,7 +290,7 @@ export const RealCreateEconomy: React.FC<RealCreateEconomyProps> = ({ onComplete
                     max="1.0"
                     value={formData.initialPurchase}
                     onChange={(e) => setFormData(prev => ({ ...prev, initialPurchase: e.target.value }))}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 focus:ring-2 focus:ring-vibe-purple focus:border-transparent"
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-vibe-purple focus:border-transparent"
                     required
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">

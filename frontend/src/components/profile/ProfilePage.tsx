@@ -77,27 +77,27 @@ export const ProfilePage: React.FC = () => {
       {/* Header */}
       <div className="relative">
         {/* Cover Image */}
-        <div className="h-32 bg-gradient-vibe"></div>
+        <div className="h-24 sm:h-32 bg-gradient-vibe"></div>
         
         {/* Profile Info */}
-        <div className="px-4 pb-4">
-          <div className="relative -mt-16 mb-4">
+        <div className="px-2 sm:px-4 pb-4">
+          <div className="relative -mt-12 sm:-mt-16 mb-4">
             <img
               src={user.avatar}
               alt={user.username}
-              className="w-24 h-24 rounded-full border-4 border-gray-900 bg-gray-800"
+              className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-gray-900 bg-gray-800"
             />
             
             {/* Profile Actions */}
-            <div className="absolute top-0 right-0 flex space-x-2">
+            <div className="absolute top-0 right-0 flex space-x-1 sm:space-x-2">
               <button 
                 onClick={handleShare}
-                className="p-2 bg-gray-800 rounded-full hover:bg-gray-700 transition-colors"
+                className="p-1.5 sm:p-2 bg-gray-800 rounded-full hover:bg-gray-700 transition-colors"
               >
-                <Share className="w-5 h-5" />
+                <Share className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
-              <button className="p-2 bg-gray-800 rounded-full hover:bg-gray-700 transition-colors">
-                <Settings className="w-5 h-5" />
+              <button className="p-1.5 sm:p-2 bg-gray-800 rounded-full hover:bg-gray-700 transition-colors">
+                <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             </div>
           </div>

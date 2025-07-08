@@ -36,12 +36,11 @@ export default function Home() {
   const { topVolume, newCoins } = useDashboardCoins()
   const [activeTab, setActiveTab] = useState('home')
   const [isOnboardingComplete, setIsOnboardingComplete] = useState(true)
-  const [showLandingPage, setShowLandingPage] = useState(!isConnected)
+  const [showLandingPage, setShowLandingPage] = useState(true)
 
   // Load Zora data on mount
   useEffect(() => {
     if (isConnected) {
-      setShowLandingPage(false)
       console.log('Zora data loading...', { topVolume: topVolume.data, newCoins: newCoins.data })
     }
   }, [isConnected, topVolume.data, newCoins.data])
@@ -74,7 +73,13 @@ export default function Home() {
   }
 
   const handleGetStarted = async () => {
-    await connectWallet()
+    if (isConnected) {
+      // If user is already connected, take them to the personalized home page
+      setShowLandingPage(false)
+    } else {
+      // If user is not connected, connect wallet first
+      await connectWallet()
+    }
   }
 
   if (!isOnboardingComplete) {
@@ -152,7 +157,7 @@ export default function Home() {
                 className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-4 px-8 rounded-full text-lg shadow-lg transition-all duration-300 transform hover:scale-105"
               >
                 <Rocket className="w-5 h-5 mr-2" />
-                Get Started
+                {isConnected ? 'Go to Home' : 'Get Started'}
               </Button>
               <Button
                 variant="outline"
@@ -398,7 +403,7 @@ export default function Home() {
                 className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-4 px-8 rounded-full text-lg shadow-lg transition-all duration-300 transform hover:scale-105"
               >
                 <Sparkles className="w-5 h-5 mr-2" />
-                Start Your Journey
+                {isConnected ? 'Go to Home' : 'Start Your Journey'}
               </Button>
             </motion.div>
           </div>
@@ -443,7 +448,18 @@ export default function Home() {
     >
       <Header />
       
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* Add landing page toggle for connected users */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+        <Button
+          onClick={() => setShowLandingPage(true)}
+          variant="outline"
+          className="border-purple-500 text-purple-400 hover:bg-purple-500/10 text-sm"
+        >
+          View Landing Page
+        </Button>
+      </div>
+      
+      <main className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-6">
         {activeTab === 'home' && (
           <PersonalizedHomeFeed onCoinSelect={handleCoinSelect} />
         )}

@@ -60,20 +60,20 @@ export const PersonalizedHomeFeed: React.FC<PersonalizedHomeFeedProps> = ({ onCo
   ]
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Hero Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center py-8"
+        className="text-center py-4 sm:py-8 px-2"
       >
-        <h1 className="text-4xl font-bold mb-4">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">
           Discover{' '}
           <span className="bg-gradient-vibe bg-clip-text text-transparent">
             Creator Coins
           </span>
         </h1>
-        <p className="text-gray-400 text-lg mb-6">
+        <p className="text-gray-400 text-sm sm:text-base lg:text-lg mb-4 sm:mb-6 max-w-2xl mx-auto">
           {isConnected 
             ? 'Personalized recommendations based on your activity'
             : 'Explore trending Creator Coins and discover new talent'

@@ -54,7 +54,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-sm border-t border-gray-800 z-50 safe-area-inset-bottom">
-      <div className="flex justify-around items-center py-2 px-4 max-w-lg mx-auto">
+      <div className="flex justify-around items-center py-1 sm:py-2 px-2 sm:px-4 max-w-lg mx-auto">
         {isConnected && !isOnCorrectNetwork && (
           <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
         )}
@@ -68,7 +68,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => onTabChange(tab.id)}
-              className={`relative flex flex-col items-center py-2 px-3 rounded-xl transition-all duration-200 ${
+              className={`relative flex flex-col items-center py-1.5 sm:py-2 px-2 sm:px-3 rounded-xl transition-all duration-200 ${
                 isActive 
                   ? `${tab.activeColor} bg-gray-800/50` 
                   : `${tab.inactiveColor} hover:text-white`
@@ -85,7 +85,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
               
               {/* Icon with enhanced visual feedback */}
               <div className={`relative ${tab.special && isActive ? 'animate-pulse' : ''}`}>
-                <Icon className={`w-6 h-6 mb-1 ${
+                <Icon className={`w-5 h-5 sm:w-6 sm:h-6 mb-0.5 sm:mb-1 ${
                   tab.special && isActive ? 'drop-shadow-lg' : ''
                 }`} />
                 
@@ -107,7 +107,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
                 )}
               </div>
               
-              <span className={`text-xs font-medium ${
+              <span className={`text-xs sm:text-xs font-medium ${
                 isActive ? 'font-semibold' : 'font-normal'
               }`}>
                 {tab.label}

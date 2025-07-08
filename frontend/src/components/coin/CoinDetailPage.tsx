@@ -11,6 +11,7 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { SocialFeatures } from '@/components/social/SocialFeatures'
 import { useWallet } from '@/hooks/useWallet'
+import { useZoraSDK } from '@/hooks/useZoraSDK'
 import { CreatorCoin, User } from '@/types'
 
 interface CoinDetailPageProps {
@@ -20,9 +21,11 @@ interface CoinDetailPageProps {
 
 export const CoinDetailPage: React.FC<CoinDetailPageProps> = ({ coin, onBack }) => {
   const { isConnected, networkConfig } = useWallet()
+  const { buyCoin, sellCoin } = useZoraSDK()
   const [activeTab, setActiveTab] = useState<'overview' | 'trading' | 'social' | 'analytics'>('overview')
   const [tradeAmount, setTradeAmount] = useState(0.01)
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy')
+  const [isTrading, setIsTrading] = useState(false)
 
   // Mock coin data if not provided
   const mockCoin: CreatorCoin = coin || {
@@ -62,10 +65,34 @@ export const CoinDetailPage: React.FC<CoinDetailPageProps> = ({ coin, onBack }) 
       return
     }
 
-    // Mock trading logic
-    console.log(`${tradeType} ${tradeAmount} ETH worth of ${mockCoin.symbol}`)
+    if (tradeAmount <= 0) {
+      console.error('Invalid trade amount')
+      return
+    }
+
+    setIsTrading(true)
     
-    console.log(`${tradeType === 'buy' ? 'Bought' : 'Sold'} ${mockCoin.symbol} successfully!`)
+    try {
+      let success = false
+      
+      if (tradeType === 'buy') {
+        success = await buyCoin(mockCoin.address, tradeAmount)
+      } else {
+        // For sell, we need to convert ETH amount to token amount
+        // This is a simplified calculation - in production you'd get this from a quote
+        const tokenAmount = tradeAmount / mockCoin.currentPrice
+        success = await sellCoin(mockCoin.address, tokenAmount)
+      }
+
+      if (success) {
+        console.log(`${tradeType === 'buy' ? 'Bought' : 'Sold'} ${mockCoin.symbol} successfully!`)
+        // Optionally refresh data or update UI state here
+      }
+    } catch (error) {
+      console.error('Trade failed:', error)
+    } finally {
+      setIsTrading(false)
+    }
   }
 
   return (
@@ -324,7 +351,7 @@ export const CoinDetailPage: React.FC<CoinDetailPageProps> = ({ coin, onBack }) 
                     type="number"
                     value={tradeAmount}
                     onChange={(e) => setTradeAmount(parseFloat(e.target.value) || 0)}
-                    className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-center focus:outline-none focus:border-vibe-purple"
+                    className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-center text-white focus:outline-none focus:border-vibe-purple"
                     step="0.001"
                     min="0.001"
                   />
@@ -367,12 +394,18 @@ export const CoinDetailPage: React.FC<CoinDetailPageProps> = ({ coin, onBack }) 
               {/* Trade Button */}
               <Button
                 onClick={handleTrade}
-                disabled={!isConnected || tradeAmount <= 0}
+                disabled={!isConnected || tradeAmount <= 0 || isTrading}
+                loading={isTrading}
                 className={`w-full py-3 ${
                   tradeType === 'buy' ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'
                 }`}
               >
-                {!isConnected ? 'Connect Wallet' : `${tradeType === 'buy' ? 'Buy' : 'Sell'} ${mockCoin.symbol}`}
+                {!isConnected 
+                  ? 'Connect Wallet' 
+                  : isTrading 
+                    ? `${tradeType === 'buy' ? 'Buying' : 'Selling'}...`
+                    : `${tradeType === 'buy' ? 'Buy' : 'Sell'} ${mockCoin.symbol}`
+                }
               </Button>
 
               {/* Network Info */}

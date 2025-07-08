@@ -209,50 +209,53 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
               />
               
               {/* Overlay Controls */}
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center space-x-2">
-                <Button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleRemove()
-                  }}
-                  size="sm"
-                  variant="outline"
-                  className="bg-black/70 border-white/20"
-                >
-                  <X className="w-4 h-4 mr-2" />
-                  Remove
-                </Button>
-                
-                {uploadedResult && (
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center">
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 p-2">
                   <Button
                     onClick={(e) => {
                       e.stopPropagation()
-                      window.open(uploadedResult.url, '_blank')
+                      handleRemove()
                     }}
                     size="sm"
                     variant="outline"
-                    className="bg-black/70 border-white/20"
+                    className="bg-black/80 border-white/30 text-white hover:bg-black/90 text-xs sm:text-sm"
                   >
-                    <Eye className="w-4 h-4 mr-2" />
-                    View on IPFS
+                    <X className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                    Remove
                   </Button>
-                )}
+                  
+                  {uploadedResult && (
+                    <Button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        window.open(uploadedResult.url, '_blank')
+                      }}
+                      size="sm"
+                      variant="outline"
+                      className="bg-black/80 border-white/30 text-white hover:bg-black/90 text-xs sm:text-sm"
+                    >
+                      <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                      <span className="hidden sm:inline">View on IPFS</span>
+                      <span className="sm:hidden">View</span>
+                    </Button>
+                  )}
+                </div>
               </div>
 
               {/* Upload Status Badge */}
               <div className="absolute top-2 right-2">
                 {isUploading ? (
-                  <div className="bg-black/70 rounded-full px-3 py-1 flex items-center space-x-2">
-                    <Loader2 className="w-4 h-4 animate-spin text-vibe-purple" />
-                    <span className="text-sm text-white">{uploadProgress}%</span>
+                  <div className="bg-black/80 rounded-full px-2 sm:px-3 py-1 flex items-center space-x-1 sm:space-x-2 border border-white/20">
+                    <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin text-vibe-purple" />
+                    <span className="text-xs sm:text-sm text-white font-medium">{uploadProgress}%</span>
                   </div>
                 ) : uploadedResult ? (
-                  <div className="bg-green-500/80 rounded-full p-2">
-                    <Check className="w-4 h-4 text-white" />
+                  <div className="bg-green-500/90 rounded-full p-1.5 sm:p-2 border border-green-400/30">
+                    <Check className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                   </div>
                 ) : error ? (
-                  <div className="bg-red-500/80 rounded-full p-2">
-                    <AlertCircle className="w-4 h-4 text-white" />
+                  <div className="bg-red-500/90 rounded-full p-1.5 sm:p-2 border border-red-400/30">
+                    <AlertCircle className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                   </div>
                 ) : null}
               </div>
@@ -334,14 +337,23 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
           className="bg-green-500/10 border border-green-500/20 rounded-lg p-3"
         >
           <div className="flex items-center space-x-2 mb-2">
-            <Check className="w-4 h-4 text-green-400" />
+            <Check className="w-4 h-4 text-green-400 flex-shrink-0" />
             <span className="text-green-400 text-sm font-medium">Successfully uploaded to IPFS!</span>
           </div>
           
           <div className="text-xs text-gray-400 space-y-1">
-            <p><strong>IPFS Hash:</strong> {uploadedResult.hash}</p>
-            <p><strong>Size:</strong> {formatFileSize(uploadedResult.size)}</p>
-            <p><strong>URI:</strong> {uploadedResult.uri}</p>
+            <div className="flex flex-col sm:flex-row sm:items-center">
+              <strong className="mr-2 mb-1 sm:mb-0">IPFS Hash:</strong>
+              <span className="font-mono text-green-400 break-all">{uploadedResult.hash}</span>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center">
+              <strong className="mr-2 mb-1 sm:mb-0">Size:</strong>
+              <span>{formatFileSize(uploadedResult.size)}</span>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center">
+              <strong className="mr-2 mb-1 sm:mb-0">URI:</strong>
+              <span className="font-mono text-blue-400 break-all">{uploadedResult.uri}</span>
+            </div>
           </div>
         </motion.div>
       )}
@@ -349,19 +361,22 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       {/* File Info */}
       {selectedFile && (
         <div className="text-xs text-gray-400 bg-gray-800 rounded-lg p-3">
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <span className="font-medium">Name:</span> {selectedFile.name}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="flex flex-col sm:flex-row">
+              <span className="font-medium mr-2 mb-1 sm:mb-0">Name:</span>
+              <span className="break-all">{selectedFile.name}</span>
             </div>
-            <div>
-              <span className="font-medium">Size:</span> {formatFileSize(selectedFile.size)}
+            <div className="flex flex-col sm:flex-row">
+              <span className="font-medium mr-2 mb-1 sm:mb-0">Size:</span>
+              <span>{formatFileSize(selectedFile.size)}</span>
             </div>
-            <div>
-              <span className="font-medium">Type:</span> {selectedFile.type}
+            <div className="flex flex-col sm:flex-row">
+              <span className="font-medium mr-2 mb-1 sm:mb-0">Type:</span>
+              <span>{selectedFile.type}</span>
             </div>
-            <div>
-              <span className="font-medium">Status:</span> 
-              <span className={`ml-1 ${
+            <div className="flex flex-col sm:flex-row">
+              <span className="font-medium mr-2 mb-1 sm:mb-0">Status:</span>
+              <span className={`${
                 uploadedResult ? 'text-green-400' : 
                 isUploading ? 'text-vibe-purple' : 
                 error ? 'text-red-400' : 'text-gray-400'
