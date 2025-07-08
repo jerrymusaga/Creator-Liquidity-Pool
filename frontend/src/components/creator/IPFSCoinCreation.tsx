@@ -182,6 +182,24 @@ export const IPFSCoinCreation: React.FC<IPFSCoinCreationProps> = ({
     }
   }
 
+  // Wallet connection validation - same pattern as profile and wallet tabs
+  if (!isConnected) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-4">
+        <Card className="p-8 text-center max-w-sm w-full">
+          <Crown className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+          <h2 className="text-xl font-bold mb-2">Connect Your Wallet</h2>
+          <p className="text-gray-400 mb-6">
+            Connect your wallet to create your Creator Coin
+          </p>
+          <Button onClick={connectWallet} className="w-full">
+            Connect Wallet
+          </Button>
+        </Card>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       {/* Header */}

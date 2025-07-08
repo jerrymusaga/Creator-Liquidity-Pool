@@ -1,4 +1,9 @@
 {
+  "accountAssociation": {
+    "header": "eyJmaWQiOjY1MzgxNywidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDJBMThDNEUzQ0RlNkQ1NjJCMDZEMkREMTI1MjhFNTgxZTMzMEFBRGQifQ",
+    "payload": "eyJkb21haW4iOiJ2aWJlc3RyZWFtLXZlcnQudmVyY2VsLmFwcCJ9",
+    "signature": "MHhkZGI4YzVmOWU1MDNlYTlkNmM3YmU3N2NjZThlY2ZhMDViNjA1NTA1OTQzOTIxM2MwNTIyZmY1YzAwMTFhNGRlMGE4MDFmNmEzYTc2YzUwMGNjNDhhNGRkYjQzMzQ1MzNmYzA4MTQxNWYyZDZmMDE0MjBlYmRhYjhiMGI1MDI5ZDFj"
+  },
   "frame": {
     "version": "1",
     "name": "VibeStream",
