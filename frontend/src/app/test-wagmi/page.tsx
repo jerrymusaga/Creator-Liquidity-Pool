@@ -3,6 +3,8 @@ import React from 'react';
 import { CoinCreationWagmiExample } from '@/components/examples/CoinCreationWagmiExample';
 import { CoinCreationWagmiFixed } from '@/components/examples/CoinCreationWagmiFixed';
 import { CoinCreationDebugger } from '@/components/examples/CoinCreationDebugger';
+import { CoinCreationSimplified } from '@/components/examples/CoinCreationSimplified';
+import { CoinCreationTroubleshooter } from '@/components/examples/CoinCreationTroubleshooter';
 
 export default function TestWagmiPage() {
   return (
@@ -31,6 +33,23 @@ export default function TestWagmiPage() {
         </div>
 
         <div className="space-y-6">
+          <div className="bg-red-900/20 border border-red-500/20 rounded-lg p-4">
+            <h3 className="font-semibold mb-2 text-red-400">🚨 Contract Revert Error</h3>
+            <p className="text-sm text-gray-300 mb-2">
+              Error <code>0x90bfb865</code> indicates a contract validation failure. Common causes:
+            </p>
+            <ul className="text-sm text-gray-300 space-y-1 list-disc ml-4">
+              <li>Invalid currency for the target chain</li>
+              <li>Malformed metadata URI</li>
+              <li>Missing contract permissions</li>
+              <li>Parameter encoding issues</li>
+            </ul>
+          </div>
+
+          <CoinCreationTroubleshooter />
+          
+          <CoinCreationSimplified />
+          
           <CoinCreationDebugger />
           
           <CoinCreationWagmiFixed />
