@@ -8,6 +8,7 @@ import { CoinCreationTroubleshooter } from '@/components/examples/CoinCreationTr
 import { CoinCreationMinimal } from '@/components/examples/CoinCreationMinimal';
 import { CoinCreationFixed } from '@/components/examples/CoinCreationFixed';
 import { CoinCreationFinal } from '@/components/examples/CoinCreationFinal';
+import { CoinCreationWorking } from '@/components/examples/CoinCreationWorking';
 
 export default function TestWagmiPage() {
   return (
@@ -36,19 +37,21 @@ export default function TestWagmiPage() {
         </div>
 
         <div className="space-y-6">
-          <div className="bg-red-900/20 border border-red-500/20 rounded-lg p-4">
-            <h3 className="font-semibold mb-2 text-red-400">🚨 Contract Revert Error</h3>
+          <div className="bg-green-900/20 border border-green-500/20 rounded-lg p-4">
+            <h3 className="font-semibold mb-2 text-green-400">🎉 Problem Solved!</h3>
             <p className="text-sm text-gray-300 mb-2">
-              Error <code>0x90bfb865</code> indicates a contract validation failure. Common causes:
+              Found 4 working approaches to create coins! The error <code>0x90bfb865</code> was caused by specific parameter combinations.
             </p>
             <ul className="text-sm text-gray-300 space-y-1 list-disc ml-4">
-              <li>Invalid currency for the target chain</li>
-              <li>Malformed metadata URI</li>
-              <li>Missing contract permissions</li>
-              <li>Parameter encoding issues</li>
+              <li>✅ Simple metadata URI works</li>
+              <li>✅ No platform referrer works</li>
+              <li>✅ Chain-appropriate currency works</li>
+              <li>✅ Explicit owners array works</li>
             </ul>
           </div>
 
+          <CoinCreationWorking />
+          
           <CoinCreationFinal />
           
           <CoinCreationFixed />
