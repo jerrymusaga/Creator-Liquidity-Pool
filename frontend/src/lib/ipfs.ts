@@ -11,7 +11,7 @@ export interface CreatorCoinMetadata {
     value: string | number
   }>
   properties?: {
-    category?: string
+    coin_type?: string
     creator?: string
     social_links?: {
       twitter?: string

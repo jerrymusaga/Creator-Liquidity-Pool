@@ -106,7 +106,7 @@ export function useUploadMetadata() {
       external_url?: string;
       attributes?: Array<{ trait_type: string; value: string | number }>;
       properties?: {
-        category?: string;
+        coin_type?: string;
         creator?: string;
         social_links?: {
           twitter?: string;

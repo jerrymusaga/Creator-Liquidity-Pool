@@ -8,7 +8,6 @@ export interface User {
   bio?: string;
   followers?: number;
   following?: number;
-  categories?: CreatorCategory[];
   socialLinks?: {
     twitter?: string;
     farcaster?: string;
@@ -131,7 +130,6 @@ export interface ContentCoin extends CreatorCoin {
   viralityScore: number
   properties: {
     contentType: 'video' | 'meme' | 'music' | 'image'
-    category: 'content'
   }
   thumbnailURI?: string
 }
@@ -147,13 +145,6 @@ export interface NFT {
   owner: string
 }
 
-export interface CreatorCategory {
-  id: string
-  name: string
-  description: string
-  color: string
-  icon: string
-}
 
 export interface CreatorSpotlight {
   creator: User

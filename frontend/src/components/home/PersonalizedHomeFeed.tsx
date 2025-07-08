@@ -11,21 +11,12 @@ import { Button } from '@/components/ui/Button'
 import { useNewCoins, useTopGainerCoins, useMostValuableCoins } from '@/hooks/useZoraCoins'
 import { useUserCreatedCoins } from '@/hooks/useZoraProfile'
 import { useWallet } from '@/hooks/useWallet'
-import { CreatorSpotlight, CreatorCategory } from '@/types'
+import { CreatorSpotlight } from '@/types'
 
 interface PersonalizedHomeFeedProps {
   onCoinSelect?: (coinAddress: string) => void
 }
 
-// Mock data for discovery features (would come from backend/API)
-const creatorCategories: CreatorCategory[] = [
-  { id: '1', name: 'Gaming', description: 'Gaming creators and streamers', color: '#8B5CF6', icon: '🎮' },
-  { id: '2', name: 'Art', description: 'Digital artists and NFT creators', color: '#EC4899', icon: '🎨' },
-  { id: '3', name: 'Music', description: 'Musicians and audio creators', color: '#10B981', icon: '🎵' },
-  { id: '4', name: 'Content', description: 'Video creators and influencers', color: '#F59E0B', icon: '📹' },
-  { id: '5', name: 'Tech', description: 'Developers and tech educators', color: '#3B82F6', icon: '💻' },
-  { id: '6', name: 'Fitness', description: 'Health and fitness coaches', color: '#EF4444', icon: '💪' },
-]
 
 export const PersonalizedHomeFeed: React.FC<PersonalizedHomeFeedProps> = ({ onCoinSelect }) => {
   const { isConnected, address } = useWallet()
@@ -34,7 +25,6 @@ export const PersonalizedHomeFeed: React.FC<PersonalizedHomeFeedProps> = ({ onCo
   const { data: popularCoins, isLoading: loadingPopular } = useMostValuableCoins({ count: 8 })
   const { data: userCreatedCoins, isLoading: loadingUserCoins } = useUserCreatedCoins()
 
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
   // Mock spotlight data (would be calculated backend)
   const spotlights: CreatorSpotlight[] = [
@@ -46,7 +36,6 @@ export const PersonalizedHomeFeed: React.FC<PersonalizedHomeFeedProps> = ({ onCo
         isCreator: true,
         followers: 15420,
         verificationStatus: 'verified' as const,
-        categories: [creatorCategories[1]], // Art
       },
       coin: {
         address: '0x123',
@@ -227,39 +216,6 @@ export const PersonalizedHomeFeed: React.FC<PersonalizedHomeFeedProps> = ({ onCo
         </motion.section>
       )}
 
-      {/* Categories */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-      >
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold">Browse by Category</h2>
-          <Button variant="outline" size="sm">
-            <Plus className="w-4 h-4 mr-2" />
-            All Categories
-          </Button>
-        </div>
-        
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          {creatorCategories.map((category) => (
-            <motion.button
-              key={category.id}
-              onClick={() => setSelectedCategory(category.id)}
-              className={`p-4 rounded-xl text-center transition-all ${
-                selectedCategory === category.id
-                  ? 'bg-vibe-purple/20 border border-vibe-purple/40'
-                  : 'bg-gray-800 hover:bg-gray-700'
-              }`}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <div className="text-2xl mb-2">{category.icon}</div>
-              <p className="font-medium text-sm">{category.name}</p>
-            </motion.button>
-          ))}
-        </div>
-      </motion.section>
 
       {/* Rising Stars */}
       <motion.section

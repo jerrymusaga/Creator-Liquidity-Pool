@@ -145,7 +145,6 @@ export const Header: React.FC = () => {
             <div className="space-y-3">
               <CustomConnectButton showBalance={true} size="sm" />
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-300">Farcaster Frame</span>
                 <button
                   onClick={() => {
                     if (navigator.share) {
@@ -159,7 +158,7 @@ export const Header: React.FC = () => {
                   className="flex items-center space-x-1 bg-purple-500/20 text-purple-300 px-2 py-1 rounded-full text-xs"
                 >
                   <Cast className="w-3 h-3" />
-                  <span>Cast</span>
+                  
                 </button>
               </div>
             </div>

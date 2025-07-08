@@ -247,7 +247,7 @@ export function useZoraSDK() {
           platform: "VibeStream",
           version: "v4",
           auto_rewards: true,
-          category: "creator_coin"
+          coin_type: "creator_coin"
         },
         attributes: [
           {

@@ -8,7 +8,7 @@
     "homeUrl": "https://vibestream-vert.vercel.app/",
     "imageUrl": "https://vibestream-vert.vercel.app/vibestreamlogo1.png",
     "buttonTitle": "🚩 Let's Explore",
-    "subtitle": " Decentralized Creator Economy Platform",
+    "subtitle": "Decentralized Creator Economy",
     "description": "Where creativity meets crypto - Build, trade, and earn with Creator Coins on Base",
     "screenshotUrls": [
       "https://vibestream-vert.vercel.app/vibestreamlogo1.png",
@@ -16,9 +16,9 @@
       "https://vibestream-vert.vercel.app/vibestreamlogo1.png"
     ],
     "primaryCategory": "social",
-    "tags": ["creators", "fans", "trade", "earn", "zora", "zora-coin"],
+    "tags": ["creators", "fans", "trade", "earn"],
     "heroImageUrl": "https://vibestream-vert.vercel.app/vibestreamlogo1.png",
-    "tagline": " Decentralized Creator Economy Platform",
+    "tagline": " Decentralized Creator Economy",
     "ogTitle": "VibeStream",
     "ogDescription": "Build, trade, and earn with Creator Coins",
     "ogImageUrl": "https://vibestream-vert.vercel.app/vibestreamlogo1.png"

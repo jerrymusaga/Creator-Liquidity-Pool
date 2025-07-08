@@ -37,19 +37,10 @@ interface CoinFormData {
   farcaster?: string
   
   // Creator Settings
-  category: string
   currency: DeployCurrency
   platformReferrer?: string
 }
 
-const CATEGORIES = [
-  { id: 'gaming', name: 'Gaming', icon: '🎮', color: '#8B5CF6' },
-  { id: 'art', name: 'Art', icon: '🎨', color: '#EC4899' },
-  { id: 'music', name: 'Music', icon: '🎵', color: '#10B981' },
-  { id: 'content', name: 'Content', icon: '📹', color: '#F59E0B' },
-  { id: 'tech', name: 'Tech', icon: '💻', color: '#3B82F6' },
-  { id: 'fitness', name: 'Fitness', icon: '💪', color: '#EF4444' },
-]
 
 export const IPFSCoinCreation: React.FC<IPFSCoinCreationProps> = ({ 
   onComplete, 
@@ -68,7 +59,6 @@ export const IPFSCoinCreation: React.FC<IPFSCoinCreationProps> = ({
     symbol: '',
     description: '',
     imageResult: null,
-    category: 'content',
     currency: defaultCurrency,
   })
 
@@ -149,12 +139,10 @@ export const IPFSCoinCreation: React.FC<IPFSCoinCreationProps> = ({
         image: formData.imageResult!.uri,
         external_url: formData.website,
         attributes: [
-          { trait_type: 'Category', value: formData.category },
           { trait_type: 'Creator', value: address || 'Unknown' },
           { trait_type: 'Network', value: networkConfig.name },
         ],
         properties: {
-          category: formData.category,
           creator: address,
           social_links: {
             twitter: formData.twitter,
@@ -377,25 +365,6 @@ export const IPFSCoinCreation: React.FC<IPFSCoinCreationProps> = ({
 
               <div className="space-y-6">
                 {/* Category Selection */}
-                <div>
-                  <label className="block text-sm font-medium mb-3">Category</label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {CATEGORIES.map((category) => (
-                      <button
-                        key={category.id}
-                        onClick={() => handleInputChange('category', category.id)}
-                        className={`p-4 rounded-lg border-2 transition-all ${
-                          formData.category === category.id
-                            ? 'border-vibe-purple bg-vibe-purple/10'
-                            : 'border-gray-700 hover:border-gray-600'
-                        }`}
-                      >
-                        <div className="text-2xl mb-2">{category.icon}</div>
-                        <p className="font-medium">{category.name}</p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
 
                 {/* Social Links */}
                 <div className="space-y-4">
@@ -494,12 +463,6 @@ export const IPFSCoinCreation: React.FC<IPFSCoinCreationProps> = ({
                 <p className="text-gray-300 mb-4">{formData.description}</p>
 
                 <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-400">Category:</span>
-                    <span className="ml-2 font-medium">
-                      {CATEGORIES.find(c => c.id === formData.category)?.name}
-                    </span>
-                  </div>
                   <div>
                     <span className="text-gray-400">Network:</span>
                     <span className="ml-2 font-medium">{networkConfig.name}</span>
