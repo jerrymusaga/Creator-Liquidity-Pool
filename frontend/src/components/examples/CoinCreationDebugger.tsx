@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/Card';
 import { useAccount } from 'wagmi';
 import { createCoinCall, DeployCurrency, InitialPurchaseCurrency, type ValidMetadataURI } from '@zoralabs/coins-sdk';
 import { Address, parseEther } from 'viem';
-import { base, baseSepolia } from 'viem/chains';
+import { base } from 'viem/chains';
 import toast from 'react-hot-toast';
 
 /**
@@ -13,7 +13,7 @@ import toast from 'react-hot-toast';
  */
 export const CoinCreationDebugger: React.FC = () => {
   const { address, isConnected, chain } = useAccount();
-  const [testResults, setTestResults] = useState<Array<{name: string, success: boolean, error?: string, args?: any[]}>>([]);
+  const [testResults, setTestResults] = useState<Array<{name: string, success: boolean, error?: string, args?: readonly unknown[]}>>([]);
 
   const currentChainId = chain?.id || base.id;
   const isBaseMainnet = currentChainId === base.id;
@@ -129,13 +129,13 @@ export const CoinCreationDebugger: React.FC = () => {
         args: result.args
       }]);
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`❌ ${config.name} - FAILED:`, error);
       
       setTestResults(prev => [...prev, {
         name: config.name,
         success: false,
-        error: error.message
+        error: error instanceof Error ? error.message : String(error)
       }]);
     }
   };

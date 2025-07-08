@@ -3,8 +3,8 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { useAccount, useSimulateContract, useWriteContract } from 'wagmi';
-import { createCoinCall, DeployCurrency, type ValidMetadataURI, InitialPurchaseCurrency } from '@zoralabs/coins-sdk';
-import { parseEther, Address } from 'viem';
+import { createCoinCall, DeployCurrency, type ValidMetadataURI } from '@zoralabs/coins-sdk';
+import { Address } from 'viem';
 import { base } from 'viem/chains';
 import toast from 'react-hot-toast';
 
@@ -14,7 +14,7 @@ import toast from 'react-hot-toast';
  */
 export const CoinCreationWagmiExample: React.FC = () => {
   const { address, isConnected } = useAccount();
-  const [contractCallConfig, setContractCallConfig] = useState<any>(null);
+  const [contractCallConfig, setContractCallConfig] = useState<unknown>(null);
 
   // Example coin parameters - simplified to avoid ABI mismatch
   const coinParams = {
@@ -54,16 +54,16 @@ export const CoinCreationWagmiExample: React.FC = () => {
       setContractCallConfig(contractCallParams);
       
       toast.success('Contract call prepared!', { id: 'prepare' });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to prepare contract call:', error);
       console.error('Error details:', error);
-      toast.error(`Failed to prepare: ${error.message}`, { id: 'prepare' });
+      toast.error(`Failed to prepare: ${error instanceof Error ? error.message : String(error)}`, { id: 'prepare' });
     }
   };
 
   // Simulate contract call
   const { data: writeConfig, error: simulateError } = useSimulateContract({
-    ...contractCallConfig,
+    ...(contractCallConfig as object),
     query: {
       enabled: !!contractCallConfig,
     }
@@ -86,8 +86,8 @@ export const CoinCreationWagmiExample: React.FC = () => {
 
     try {
       writeContract(writeConfig.request);
-    } catch (error: any) {
-      toast.error(`Transaction failed: ${error.message}`);
+    } catch (error: unknown) {
+      toast.error(`Transaction failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
