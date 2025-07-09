@@ -1,4 +1,4 @@
-// components/coin/CoinDetailPage.tsx
+
 'use client'
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
@@ -9,7 +9,6 @@ import {
 } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { SocialFeatures } from '@/components/social/SocialFeatures'
 import { useWallet } from '@/hooks/useWallet'
 import { useZoraSDK } from '@/hooks/useZoraSDK'
 import { CreatorCoin, User } from '@/types'
@@ -298,10 +297,7 @@ export const CoinDetailPage: React.FC<CoinDetailPageProps> = ({ coin, onBack }) 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                <SocialFeatures 
-                  coinAddress={mockCoin.address}
-                  creator={mockCoin.creator}
-                />
+                
               </motion.div>
             )}
 
