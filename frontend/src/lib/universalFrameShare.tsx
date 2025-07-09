@@ -9,25 +9,42 @@ export const shareCoinsAsFrame = async (coin: any, customMessage?: string) => {
   const defaultMessage = customMessage || generateShareMessage(coin)
   
   try {
-    // Check if we're in a Farcaster context
-    const isFarcasterContext = typeof window !== 'undefined' && (
-      window.location.hostname.includes('warpcast') ||
-      window.location.hostname.includes('farcaster') ||
-      window.location.hostname.includes('frames') ||
-      (window as any).farcaster ||
-      (window as any).parent !== window || // In iframe/miniapp
-      navigator.userAgent.includes('Farcaster')
+    // Improved context detection - be more specific about mobile vs desktop
+    const isMobileFarcasterApp = typeof window !== 'undefined' && (
+      navigator.userAgent.includes('Farcaster') ||
+      navigator.userAgent.includes('Mobile') && (
+        window.location.hostname.includes('warpcast') ||
+        window.location.hostname.includes('farcaster')
+      )
     )
 
+    // Check if we're in a Farcaster miniapp/iframe (mobile)
+    const isFarcasterMiniapp = typeof window !== 'undefined' && (
+      (window as any).farcaster ||
+      (window as any).parent !== window && (
+        document.referrer.includes('farcaster') ||
+        document.referrer.includes('warpcast')
+      )
+    )
+
+    // Desktop Farcaster should NOT be treated as "in Farcaster context"
+    const isDesktopFarcaster = typeof window !== 'undefined' && (
+      window.location.hostname.includes('warpcast') ||
+      window.location.hostname.includes('farcaster')
+    ) && !navigator.userAgent.includes('Mobile')
+
     console.log('🔍 Share context detection:', {
-      isFarcasterContext,
+      isMobileFarcasterApp,
+      isFarcasterMiniapp,
+      isDesktopFarcaster,
       hostname: typeof window !== 'undefined' ? window.location.hostname : 'server',
       userAgent: typeof window !== 'undefined' ? navigator.userAgent : 'server',
       hasFarcasterAPI: typeof window !== 'undefined' ? !!(window as any).farcaster : false
     })
 
-    if (isFarcasterContext) {
-      // If we're in Farcaster miniapp, try to use Farcaster APIs
+    // Handle mobile Farcaster app or miniapp
+    if (isMobileFarcasterApp || isFarcasterMiniapp) {
+      // Try Farcaster APIs first
       if ((window as any).farcaster?.createCast) {
         console.log('🎯 Using Farcaster createCast API')
         await (window as any).farcaster.createCast({
@@ -38,7 +55,7 @@ export const shareCoinsAsFrame = async (coin: any, customMessage?: string) => {
         return
       }
 
-      // Check for other Farcaster frame APIs
+      // Try postMessage to parent frame
       if ((window as any).parent && (window as any).parent.postMessage) {
         console.log('🎯 Attempting postMessage to parent frame')
         try {
@@ -55,8 +72,20 @@ export const shareCoinsAsFrame = async (coin: any, customMessage?: string) => {
           console.warn('PostMessage failed:', postMessageError)
         }
       }
-      
-      // Fallback: copy to clipboard with instructions for Farcaster users
+
+      // Mobile fallback: try native sharing
+      if (navigator.share) {
+        console.log('🎯 Using native share API on mobile')
+        await navigator.share({
+          title: `${coin.name} (${coin.symbol}) on VibeStream`,
+          text: defaultMessage,
+          url: frameUrl
+        })
+        toast.success('Shared as interactive trading frame! 🎯', { duration: 4000 })
+        return
+      }
+
+      // Mobile clipboard fallback
       await navigator.clipboard.writeText(`${defaultMessage}\n\n${frameUrl}`)
       toast.success(
         <div>
@@ -68,42 +97,76 @@ export const shareCoinsAsFrame = async (coin: any, customMessage?: string) => {
       return
     }
 
-    // Try native sharing API (mobile)
+    // Handle desktop (including desktop Farcaster) - always try to open Warpcast
+    console.log('🎯 Desktop context - opening Warpcast compose')
+    
+    // Try native sharing API first (some desktop browsers support it)
     if (navigator.share) {
-      console.log('🎯 Using native share API')
-      await navigator.share({
-        title: `${coin.name} (${coin.symbol}) on VibeStream`,
-        text: defaultMessage,
-        url: frameUrl
-      })
-      toast.success('Shared as interactive trading frame! 🎯', { duration: 4000 })
-    } else {
-      // Desktop: Open Warpcast with frame
-      console.log('🎯 Opening Warpcast with frame URL')
-      const warpcastUrl = frameUtils.generateWarpcastShareUrl(frameUrl, defaultMessage)
-      
-      // Open in new tab
-      const newWindow = window.open(warpcastUrl, '_blank', 'noopener,noreferrer')
-      
-      if (newWindow) {
-        toast.success(
-          <div>
-            <p><strong>Opening Warpcast...</strong></p>
-            <p className="text-sm mt-1">Frame ready to share!</p>
-          </div>,
-          { duration: 4000 }
-        )
-      } else {
-        // Fallback if popup blocked
-        await navigator.clipboard.writeText(`${defaultMessage}\n\n${frameUrl}`)
-        toast.success(
-          <div>
-            <p><strong>Frame URL copied!</strong></p>
-            <p className="text-sm mt-1">Open Warpcast and paste to share</p>
-          </div>, 
-          { duration: 6000 }
-        )
+      try {
+        console.log('🎯 Using native share API on desktop')
+        await navigator.share({
+          title: `${coin.name} (${coin.symbol}) on VibeStream`,
+          text: defaultMessage,
+          url: frameUrl
+        })
+        toast.success('Shared as interactive trading frame! 🎯', { duration: 4000 })
+        return
+      } catch (shareError) {
+        console.log('Native share failed, falling back to Warpcast')
       }
+    }
+
+    // Desktop: Open Warpcast with frame
+    const warpcastUrl = frameUtils.generateWarpcastShareUrl(frameUrl, defaultMessage)
+    console.log('🎯 Opening Warpcast URL:', warpcastUrl)
+    
+    // Try to open in new tab
+    const newWindow = window.open(warpcastUrl, '_blank', 'noopener,noreferrer,width=600,height=800')
+    
+    if (newWindow) {
+      // Check if window actually opened (not blocked)
+      setTimeout(() => {
+        if (newWindow.closed) {
+          console.log('❌ Popup was blocked or closed immediately')
+          fallbackToClipboard()
+        } else {
+          console.log('✅ Warpcast opened successfully')
+          toast.success(
+            <div>
+              <p><strong>Opening Warpcast...</strong></p>
+              <p className="text-sm mt-1">Frame ready to share in the compose window!</p>
+            </div>,
+            { duration: 4000 }
+          )
+        }
+      }, 100)
+    } else {
+      console.log('❌ Popup blocked')
+      fallbackToClipboard()
+    }
+
+    // Fallback function for clipboard copy
+    function fallbackToClipboard() {
+      console.log('🔄 Falling back to clipboard copy')
+      navigator.clipboard.writeText(`${defaultMessage}\n\n${frameUrl}`)
+        .then(() => {
+          toast.success(
+            <div>
+              <p><strong>Frame URL copied!</strong></p>
+              <p className="text-sm mt-1">Popup was blocked. Open Warpcast and paste to share</p>
+              <button 
+                onClick={() => window.open('https://warpcast.com/~/compose', '_blank')}
+                className="mt-2 px-3 py-1 bg-purple-500 text-white rounded text-xs hover:bg-purple-600"
+              >
+                Open Warpcast
+              </button>
+            </div>, 
+            { duration: 8000 }
+          )
+        })
+        .catch(() => {
+          toast.error('Failed to copy URL. Please try again.')
+        })
     }
     
   } catch (error) {
@@ -121,52 +184,8 @@ export const shareCoinsAsFrame = async (coin: any, customMessage?: string) => {
         { duration: 8000 }
       )
     } catch (clipboardError) {
-      // If clipboard fails too, show the URL in a modal or alert
       console.error('❌ Clipboard also failed:', clipboardError)
-      
-      // Last resort: show frame URL in alert
-      const message = `Share this interactive trading frame:\n\n${defaultMessage}\n\n${frameUrl}`
-      
-      if (typeof window !== 'undefined') {
-        // Try to create a custom modal if possible
-        const modal = document.createElement('div')
-        modal.style.cssText = `
-          position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-          background: rgba(0,0,0,0.8); z-index: 10000;
-          display: flex; align-items: center; justify-content: center;
-          color: white; font-family: system-ui;
-        `
-        modal.innerHTML = `
-          <div style="background: #1f2937; padding: 24px; border-radius: 12px; max-width: 400px; margin: 20px;">
-            <h3 style="margin: 0 0 16px 0;">Share Frame URL</h3>
-            <p style="margin: 0 0 16px 0; font-size: 14px;">${defaultMessage}</p>
-            <input type="text" value="${frameUrl}" readonly style="width: 100%; padding: 8px; background: #374151; border: 1px solid #6b7280; border-radius: 6px; color: white; margin-bottom: 16px;">
-            <div style="display: flex; gap: 8px;">
-              <button onclick="navigator.clipboard.writeText('${frameUrl}').then(() => alert('Copied!')).catch(() => {})" style="flex: 1; padding: 8px; background: #8b5cf6; border: none; border-radius: 6px; color: white; cursor: pointer;">Copy URL</button>
-              <button onclick="this.closest('div').parentElement.remove()" style="flex: 1; padding: 8px; background: #6b7280; border: none; border-radius: 6px; color: white; cursor: pointer;">Close</button>
-            </div>
-          </div>
-        `
-        document.body.appendChild(modal)
-        
-        // Auto-remove after 10 seconds
-        setTimeout(() => {
-          if (modal.parentElement) {
-            modal.remove()
-          }
-        }, 10000)
-      } else {
-        // Server-side or no DOM - just log
-        console.log('📋 Frame URL to share:', frameUrl)
-      }
-      
-      toast.error(
-        <div>
-          <p><strong>Share failed</strong></p>
-          <p className="text-sm mt-1">Check console for frame URL</p>
-        </div>,
-        { duration: 5000 }
-      )
+      toast.error('Failed to share frame. Please try again.')
     }
   }
 }
@@ -226,52 +245,6 @@ export const validateFrameUrl = (url: string): boolean => {
   }
 }
 
-// Helper function to get frame metadata for preview
-export const getFrameMetadata = async (frameUrl: string) => {
-  try {
-    const response = await fetch(frameUrl, {
-      method: 'GET',
-      headers: {
-        'Accept': 'text/html',
-        'User-Agent': 'Farcaster Frame Bot 1.0'
-      }
-    })
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`)
-    }
-    
-    const html = await response.text()
-    
-    // Extract basic metadata using regex (simple parsing)
-    const titleMatch = html.match(/<meta property="og:title" content="([^"]*)"/)
-    const descMatch = html.match(/<meta property="og:description" content="([^"]*)"/)
-    const imageMatch = html.match(/<meta property="fc:frame:image" content="([^"]*)"/)
-    const postUrlMatch = html.match(/<meta property="fc:frame:post_url" content="([^"]*)"/)
-    
-    return {
-      title: titleMatch?.[1] || 'Creator Coin Frame',
-      description: descMatch?.[1] || 'Trade Creator Coins directly in Farcaster',
-      image: imageMatch?.[1] || null,
-      postUrl: postUrlMatch?.[1] || frameUrl,
-      isValid: !!(titleMatch && imageMatch),
-      hasButtons: html.includes('fc:frame:button:1'),
-      hasInput: html.includes('fc:frame:input:text')
-    }
-  } catch (error) {
-    console.error('❌ Failed to fetch frame metadata:', error)
-    return {
-      title: 'Creator Coin Frame',
-      description: 'Trade Creator Coins directly in Farcaster',
-      image: null,
-      postUrl: frameUrl,
-      isValid: false,
-      hasButtons: false,
-      hasInput: false
-    }
-  }
-}
-
 // Enhanced sharing with different strategies for different contexts
 export const shareCoinsAsFrameAdvanced = async (
   coin: any, 
@@ -319,7 +292,7 @@ export const shareCoinsAsFrameAdvanced = async (
   return shareCoinsAsFrame(coin, shareMessage)
 }
 
-// Utility to detect if we're in different Farcaster contexts
+// Improved utility to detect if we're in different Farcaster contexts
 export const detectFarcasterContext = () => {
   if (typeof window === 'undefined') return 'server'
   
@@ -327,10 +300,13 @@ export const detectFarcasterContext = () => {
   const userAgent = navigator.userAgent
   const hasAPI = !!(window as any).farcaster
   const isFrame = window !== window.parent
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)
   
-  if (hostname.includes('warpcast')) return 'warpcast'
-  if (hostname.includes('farcaster')) return 'farcaster-app'
-  if (userAgent.includes('Farcaster')) return 'farcaster-mobile'
+  if (hostname.includes('warpcast') && isMobile) return 'warpcast-mobile'
+  if (hostname.includes('warpcast') && !isMobile) return 'warpcast-desktop'
+  if (hostname.includes('farcaster') && isMobile) return 'farcaster-mobile'
+  if (hostname.includes('farcaster') && !isMobile) return 'farcaster-desktop'
+  if (userAgent.includes('Farcaster')) return 'farcaster-native-app'
   if (hasAPI) return 'farcaster-with-api'
   if (isFrame) return 'iframe-miniapp'
   

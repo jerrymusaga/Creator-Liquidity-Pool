@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Cast, Share, Sparkles, Copy, ExternalLink, CheckCircle } from 'lucide-react'
+import { Cast, Share, Sparkles, Copy, ExternalLink, CheckCircle, ChevronDown } from 'lucide-react'
 import { shareCoinsAsFrame, shareCoinsAsFrameAdvanced, detectFarcasterContext } from '@/lib/universalFrameShare'
 import { frameUtils } from '@/lib/frameUtils'
 import toast from 'react-hot-toast'
@@ -31,7 +31,8 @@ export const EnhancedShareButton: React.FC<EnhancedShareButtonProps> = ({
   const [shareSuccess, setShareSuccess] = useState(false)
 
   const farcasterContext = detectFarcasterContext()
-  const isInFarcaster = farcasterContext !== 'external'
+  const isMobile = typeof window !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+  const isDesktop = !isMobile
 
   const handleShare = async (shareMethod: 'auto' | 'warpcast' | 'copy' | 'advanced' = 'auto') => {
     setIsSharing(true)
@@ -47,19 +48,26 @@ export const EnhancedShareButton: React.FC<EnhancedShareButtonProps> = ({
         const frameUrl = frameUtils.generateShareableFrameUrl(coin.address)
         const shareMessage = message || getShareMessage(coin, rank, context)
         const warpcastUrl = frameUtils.generateWarpcastShareUrl(frameUrl, shareMessage)
-        window.open(warpcastUrl, '_blank', 'noopener,noreferrer')
-        toast.success('Opening Warpcast to share frame...', { duration: 3000 })
+        
+        // Better desktop handling
+        if (isDesktop) {
+          const newWindow = window.open(warpcastUrl, '_blank', 'noopener,noreferrer,width=600,height=800')
+          if (newWindow) {
+            toast.success('Opening Warpcast compose window...', { duration: 3000 })
+          } else {
+            // Fallback if popup blocked
+            await navigator.clipboard.writeText(`${shareMessage}\n\n${frameUrl}`)
+            toast.success('Popup blocked. Frame URL copied - open Warpcast to paste!', { duration: 5000 })
+          }
+        } else {
+          window.open(warpcastUrl, '_blank', 'noopener,noreferrer')
+          toast.success('Opening Warpcast...', { duration: 3000 })
+        }
       } else if (shareMethod === 'copy') {
         const frameUrl = frameUtils.generateShareableFrameUrl(coin.address)
         const shareMessage = message || getShareMessage(coin, rank, context)
         await navigator.clipboard.writeText(`${shareMessage}\n\n${frameUrl}`)
-        toast.success(
-          <div>
-            <p><strong>Frame URL copied!</strong></p>
-            <p className="text-sm mt-1">Paste in Farcaster to share interactive trading card</p>
-          </div>,
-          { duration: 5000 }
-        )
+        toast.success('Frame URL copied to clipboard!', { duration: 3000 })
       } else {
         const shareMessage = message || getShareMessage(coin, rank, context)
         await shareCoinsAsFrame(coin, shareMessage)
@@ -96,9 +104,9 @@ export const EnhancedShareButton: React.FC<EnhancedShareButtonProps> = ({
 
   const getButtonSizes = () => {
     const sizes = {
-      sm: 'px-3 py-1.5 text-xs',
-      md: 'px-4 py-2 text-sm',
-      lg: 'px-6 py-3 text-base'
+      sm: isDesktop ? 'px-4 py-2 text-sm' : 'px-3 py-1.5 text-xs',
+      md: isDesktop ? 'px-6 py-3 text-base' : 'px-4 py-2 text-sm',
+      lg: isDesktop ? 'px-8 py-4 text-lg' : 'px-6 py-3 text-base'
     }
     return sizes[size]
   }
@@ -110,20 +118,24 @@ export const EnhancedShareButton: React.FC<EnhancedShareButtonProps> = ({
         hover:from-purple-600 hover:via-pink-600 hover:to-orange-600
         text-white font-medium shadow-lg hover:shadow-xl
         ${rank && rank <= 3 ? 'animate-pulse' : ''}
+        ${isDesktop ? 'hover:scale-105 transition-all duration-200' : ''}
       `,
       secondary: `
         bg-gray-700 hover:bg-gray-600 text-white font-medium
         border border-gray-600 hover:border-gray-500
+        ${isDesktop ? 'hover:scale-105 transition-all duration-200' : ''}
       `,
       minimal: `
         text-gray-400 hover:text-purple-400 bg-transparent hover:bg-purple-500/10
         transition-colors duration-200
+        ${isDesktop ? 'hover:scale-105' : ''}
       `,
       trending: `
         bg-gradient-to-r from-orange-500 via-red-500 to-pink-500
         hover:from-orange-600 hover:via-red-600 hover:to-pink-600
         text-white font-bold shadow-lg hover:shadow-xl
         animate-pulse
+        ${isDesktop ? 'hover:scale-105 transition-all duration-200' : ''}
       `
     }
     return variants[variant]
@@ -136,167 +148,202 @@ export const EnhancedShareButton: React.FC<EnhancedShareButtonProps> = ({
         onClick={() => handleShare()}
         disabled={isSharing}
         className={`
-          flex items-center space-x-1.5 ${getButtonSizes()} rounded-lg
+          flex items-center justify-center space-x-2 ${getButtonSizes()} rounded-lg
           ${getButtonVariant()}
           disabled:opacity-50 disabled:cursor-not-allowed
           ${className}
         `}
       >
         {isSharing ? (
-          <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+          <div className="w-4 h-4 border border-current border-t-transparent rounded-full animate-spin" />
         ) : shareSuccess ? (
-          <CheckCircle className="w-3 h-3 text-green-400" />
+          <CheckCircle className="w-4 h-4 text-green-400" />
         ) : (
-          <Share className="w-3 h-3" />
+          <Share className="w-4 h-4" />
         )}
-        <span>{isSharing ? 'Sharing...' : shareSuccess ? 'Shared!' : 'Share'}</span>
+        <span className="hidden sm:inline">
+          {isSharing ? 'Sharing...' : shareSuccess ? 'Shared!' : 'Share'}
+        </span>
       </button>
     )
   }
 
-  return (
-    <div className={`relative ${className}`}>
-      <motion.button
-        onClick={() => showOptions ? setShowOptions(false) : handleShare()}
-        // onMouseEnter={() => variant !== 'minimal' && setShowOptions(true)}
-        onMouseLeave={() => setTimeout(() => setShowOptions(false), 2000)}
-        disabled={isSharing}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        className={`
-          relative overflow-hidden group rounded-full transition-all duration-300
-          ${getButtonSizes()} ${getButtonVariant()}
-          disabled:opacity-50 disabled:cursor-not-allowed
-        `}
-      >
-        {/* Animated background gradient for top performers */}
-        {rank && rank <= 3 && (
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-        )}
-        
-        {/* Sparkle effects for top 3 */}
-        {rank && rank <= 3 && !isSharing && (
-          <div className="absolute inset-0 opacity-30">
-            <Sparkles className="w-3 h-3 absolute top-0.5 left-1 animate-ping" />
-            <Sparkles className="w-2 h-2 absolute bottom-0.5 right-1 animate-ping animation-delay-300" />
-          </div>
-        )}
-        
-        {/* Button content */}
-        <div className="relative flex items-center space-x-1.5 z-10">
-          {isSharing ? (
-            <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
-          ) : shareSuccess ? (
-            <CheckCircle className="w-3 h-3 text-green-300" />
-          ) : (
-            <>
-              <Cast className="w-3 h-3" />
-              <Share className="w-3 h-3" />
-            </>
-          )}
-          <span>
-            {isSharing 
-              ? 'Sharing...' 
-              : shareSuccess 
-                ? 'Shared!' 
-                : variant === 'trending' 
-                  ? `Share #${rank || ''} Trending` 
-                  : 'Share Frame'
-            }
-          </span>
-        </div>
-        
-        {/* Glow effect */}
-        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-orange-500/20 blur-sm group-hover:blur-md transition-all duration-300 -z-10"></div>
-      </motion.button>
-
-      {/* Share Options Dropdown */}
-      <AnimatePresence>
-        {showOptions && !isSharing && !shareSuccess && (
-          <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="absolute top-full mt-2 right-0 bg-gray-800 border border-gray-600 rounded-lg shadow-xl z-50 min-w-[200px]"
-            onMouseEnter={() => setShowOptions(true)}
-            onMouseLeave={() => setShowOptions(false)}
+  // Desktop gets a more sophisticated button with dropdown
+  if (isDesktop) {
+    return (
+      <div className={`relative ${className}`}>
+        <div className="flex items-center space-x-1">
+          {/* Main share button */}
+          <motion.button
+            onClick={() => handleShare()}
+            disabled={isSharing}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className={`
+              relative overflow-hidden group rounded-lg transition-all duration-300
+              ${getButtonSizes()} ${getButtonVariant()}
+              disabled:opacity-50 disabled:cursor-not-allowed
+              flex items-center space-x-2
+            `}
           >
-            <div className="p-2">
-              {/* Farcaster context indicator */}
-              <div className="px-3 py-2 border-b border-gray-600 mb-2">
-                <div className="flex items-center space-x-2">
-                  <div className={`w-2 h-2 rounded-full ${isInFarcaster ? 'bg-green-400' : 'bg-gray-400'}`}></div>
-                  <span className="text-xs text-gray-400">
-                    {isInFarcaster ? `In ${farcasterContext}` : 'External context'}
-                  </span>
-                </div>
+            {/* Sparkle effects for top 3 */}
+            {rank && rank <= 3 && !isSharing && (
+              <div className="absolute inset-0 opacity-30">
+                <Sparkles className="w-3 h-3 absolute top-1 left-1 animate-ping" />
+                <Sparkles className="w-2 h-2 absolute bottom-1 right-1 animate-ping animation-delay-300" />
               </div>
-
-              <button
-                onClick={() => handleShare('auto')}
-                className="w-full flex items-center space-x-2 px-3 py-2 rounded-md hover:bg-gray-700 transition-colors text-left"
-              >
-                <Cast className="w-4 h-4 text-purple-400" />
-                <div>
-                  <div className="text-sm">Smart Share</div>
-                  <div className="text-xs text-gray-400">Auto-detect best method</div>
-                </div>
-              </button>
-              
-              <button
-                onClick={() => handleShare('warpcast')}
-                className="w-full flex items-center space-x-2 px-3 py-2 rounded-md hover:bg-gray-700 transition-colors text-left"
-              >
-                <ExternalLink className="w-4 h-4 text-blue-400" />
-                <div>
-                  <div className="text-sm">Open Warpcast</div>
-                  <div className="text-xs text-gray-400">Share directly</div>
-                </div>
-              </button>
-              
-              <button
-                onClick={() => handleShare('copy')}
-                className="w-full flex items-center space-x-2 px-3 py-2 rounded-md hover:bg-gray-700 transition-colors text-left"
-              >
-                <Copy className="w-4 h-4 text-green-400" />
-                <div>
-                  <div className="text-sm">Copy Frame URL</div>
-                  <div className="text-xs text-gray-400">Paste anywhere</div>
-                </div>
-              </button>
-
-              <button
-                onClick={() => handleShare('advanced')}
-                className="w-full flex items-center space-x-2 px-3 py-2 rounded-md hover:bg-gray-700 transition-colors text-left"
-              >
-                <Sparkles className="w-4 h-4 text-yellow-400" />
-                <div>
-                  <div className="text-sm">Enhanced Share</div>
-                  <div className="text-xs text-gray-400">With stats & context</div>
-                </div>
-              </button>
+            )}
+            
+            {/* Button content */}
+            <div className="relative flex items-center space-x-2 z-10">
+              {isSharing ? (
+                <div className="w-4 h-4 border border-white border-t-transparent rounded-full animate-spin" />
+              ) : shareSuccess ? (
+                <CheckCircle className="w-4 h-4 text-green-300" />
+              ) : (
+                <Cast className="w-4 h-4" />
+              )}
+              <span>
+                {isSharing 
+                  ? 'Sharing...' 
+                  : shareSuccess 
+                    ? 'Shared!' 
+                    : variant === 'trending' 
+                      ? `Share #${rank || ''} Trending` 
+                      : 'Share Frame'
+                }
+              </span>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            
+            {/* Glow effect */}
+            <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-orange-500/20 blur-sm group-hover:blur-md transition-all duration-300 -z-10"></div>
+          </motion.button>
 
-      {/* Preview tooltip if requested */}
-      {showPreview && showOptions && (
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="absolute left-full ml-4 top-0 bg-gray-900 border border-gray-600 rounded-lg p-4 shadow-xl min-w-[300px] z-50"
-        >
-          <div className="text-sm">
-            <div className="font-semibold mb-2">Frame Preview:</div>
-            <div className="text-gray-300 mb-2">{getShareMessage(coin, rank, context)}</div>
-            <div className="text-xs text-gray-400">
-              Frame URL: {frameUtils.generateShareableFrameUrl(coin.address)}
-            </div>
-          </div>
-        </motion.div>
+          {/* Dropdown arrow button */}
+          <motion.button
+            onClick={() => setShowOptions(!showOptions)}
+            disabled={isSharing}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className={`
+              px-2 py-3 rounded-lg transition-all duration-300
+              ${getButtonVariant()}
+              disabled:opacity-50 disabled:cursor-not-allowed
+              border-l border-white/20
+            `}
+          >
+            <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showOptions ? 'rotate-180' : ''}`} />
+          </motion.button>
+        </div>
+
+        {/* Desktop Dropdown Menu */}
+        <AnimatePresence>
+          {showOptions && !isSharing && !shareSuccess && (
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+              className="absolute top-full mt-2 right-0 bg-gray-800 border border-gray-600 rounded-lg shadow-xl z-50 min-w-[220px] overflow-hidden"
+            >
+              <div className="p-1">
+                {/* Context indicator */}
+                <div className="px-3 py-2 border-b border-gray-600 mb-1">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                    <span className="text-xs text-gray-400">Desktop • {farcasterContext}</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => handleShare('warpcast')}
+                  className="w-full flex items-center space-x-3 px-3 py-2 rounded-md hover:bg-gray-700 transition-colors text-left"
+                >
+                  <Cast className="w-4 h-4 text-purple-400" />
+                  <div>
+                    <div className="text-sm font-medium">Open Warpcast</div>
+                    <div className="text-xs text-gray-400">Share in new tab</div>
+                  </div>
+                </button>
+                
+                <button
+                  onClick={() => handleShare('copy')}
+                  className="w-full flex items-center space-x-3 px-3 py-2 rounded-md hover:bg-gray-700 transition-colors text-left"
+                >
+                  <Copy className="w-4 h-4 text-green-400" />
+                  <div>
+                    <div className="text-sm font-medium">Copy Frame URL</div>
+                    <div className="text-xs text-gray-400">Paste anywhere</div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => handleShare('advanced')}
+                  className="w-full flex items-center space-x-3 px-3 py-2 rounded-md hover:bg-gray-700 transition-colors text-left"
+                >
+                  <Sparkles className="w-4 h-4 text-yellow-400" />
+                  <div>
+                    <div className="text-sm font-medium">Enhanced Share</div>
+                    <div className="text-xs text-gray-400">With stats & context</div>
+                  </div>
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    )
+  }
+
+  // Mobile gets a simpler, touch-friendly button
+  return (
+    <motion.button
+      onClick={() => handleShare()}
+      disabled={isSharing}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      className={`
+        relative overflow-hidden group rounded-full transition-all duration-300
+        ${getButtonSizes()} ${getButtonVariant()}
+        disabled:opacity-50 disabled:cursor-not-allowed
+        flex items-center justify-center space-x-2
+        ${className}
+      `}
+    >
+      {/* Sparkle effects for top 3 */}
+      {rank && rank <= 3 && !isSharing && (
+        <div className="absolute inset-0 opacity-30">
+          <Sparkles className="w-3 h-3 absolute top-0.5 left-1 animate-ping" />
+          <Sparkles className="w-2 h-2 absolute bottom-0.5 right-1 animate-ping animation-delay-300" />
+        </div>
       )}
-    </div>
+      
+      {/* Button content */}
+      <div className="relative flex items-center space-x-2 z-10">
+        {isSharing ? (
+          <div className="w-4 h-4 border border-white border-t-transparent rounded-full animate-spin" />
+        ) : shareSuccess ? (
+          <CheckCircle className="w-4 h-4 text-green-300" />
+        ) : (
+          <>
+            <Cast className="w-4 h-4" />
+            <Share className="w-4 h-4" />
+          </>
+        )}
+        <span className="text-sm">
+          {isSharing 
+            ? 'Sharing...' 
+            : shareSuccess 
+              ? 'Shared!' 
+              : variant === 'trending' 
+                ? `#${rank || ''} Trending` 
+                : 'Share'
+          }
+        </span>
+      </div>
+      
+      {/* Glow effect */}
+      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-orange-500/20 blur-sm group-hover:blur-md transition-all duration-300 -z-10"></div>
+    </motion.button>
   )
 }
 
@@ -307,6 +354,7 @@ export const BulkShareButton: React.FC<{
   description?: string
 }> = ({ coins, title = "Hot Creator Coins", description = "Trending coins worth watching" }) => {
   const [isSharing, setIsSharing] = useState(false)
+  const isDesktop = typeof window !== 'undefined' && !/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 
   const handleBulkShare = async () => {
     setIsSharing(true)
@@ -317,14 +365,22 @@ export const BulkShareButton: React.FC<{
       
       const message = `🔥 ${title}:\n\n${description}\n\n${frameUrls.join('\n\n')}`
       
-      if (navigator.share) {
-        await navigator.share({
-          title,
-          text: message
-        })
+      if (isDesktop) {
+        // Desktop: open Warpcast
+        const warpcastUrl = frameUtils.generateWarpcastShareUrl(frameUrls[0], message)
+        window.open(warpcastUrl, '_blank', 'noopener,noreferrer,width=600,height=800')
+        toast.success('Opening Warpcast with multiple frames...')
       } else {
-        await navigator.clipboard.writeText(message)
-        toast.success('Multiple frame URLs copied!')
+        // Mobile: try native share
+        if (navigator.share) {
+          await navigator.share({
+            title,
+            text: message
+          })
+        } else {
+          await navigator.clipboard.writeText(message)
+          toast.success('Multiple frame URLs copied!')
+        }
       }
     } catch (error) {
       toast.error('Failed to share multiple frames')
@@ -337,7 +393,14 @@ export const BulkShareButton: React.FC<{
     <button
       onClick={handleBulkShare}
       disabled={isSharing}
-      className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-lg transition-all disabled:opacity-50"
+      className={`
+        flex items-center space-x-2 rounded-lg transition-all disabled:opacity-50
+        ${isDesktop 
+          ? 'px-6 py-3 text-base hover:scale-105' 
+          : 'px-4 py-2 text-sm'
+        }
+        bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white
+      `}
     >
       <Share className="w-4 h-4" />
       <span>{isSharing ? 'Sharing...' : `Share ${coins.length} Frames`}</span>

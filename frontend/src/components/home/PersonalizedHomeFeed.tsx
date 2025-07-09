@@ -13,6 +13,65 @@ import { useNewCoins, useTopGainerCoins, useMostValuableCoins } from '@/hooks/us
 import { useUserCreatedCoins } from '@/hooks/useZoraProfile'
 import { useWallet } from '@/hooks/useWallet'
 import { useZoraSDK } from '@/hooks/useZoraSDK'
+import toast from 'react-hot-toast'
+
+// Dynamic formatting utilities
+const formatCurrency = (value: number): string => {
+  if (value === 0) return '$0'
+  
+  if (value < 1) {
+    // For values less than $1, show with appropriate decimal places
+    if (value < 0.01) return `$${value.toFixed(4)}`
+    if (value < 0.1) return `$${value.toFixed(3)}`
+    return `$${value.toFixed(2)}`
+  }
+  
+  if (value < 1000) {
+    // Less than $1,000 - show whole dollars with commas
+    return `$${Math.round(value).toLocaleString()}`
+  }
+  
+  if (value < 1000000) {
+    // $1,000 to $999,999 - show as K
+    const kValue = value / 1000
+    if (kValue < 10) return `$${kValue.toFixed(1)}K`
+    return `$${Math.round(kValue)}K`
+  }
+  
+  if (value < 1000000000) {
+    // $1M to $999M - show as M
+    const mValue = value / 1000000
+    if (mValue < 10) return `$${mValue.toFixed(1)}M`
+    return `$${Math.round(mValue)}M`
+  }
+  
+  // $1B+ - show as B
+  const bValue = value / 1000000000
+  if (bValue < 10) return `$${bValue.toFixed(1)}B`
+  return `$${Math.round(bValue)}B`
+}
+
+const formatPrice = (value: number): string => {
+  if (value === 0) return '$0'
+  
+  if (value < 0.000001) {
+    return `$${value.toExponential(2)}`
+  }
+  
+  if (value < 0.01) {
+    return `$${value.toFixed(6)}`
+  }
+  
+  if (value < 1) {
+    return `$${value.toFixed(4)}`
+  }
+  
+  if (value < 1000) {
+    return `$${value.toFixed(2)}`
+  }
+  
+  return formatCurrency(value)
+}
 
 interface PersonalizedHomeFeedProps {
   onCoinSelect?: (coinAddress: string) => void
@@ -144,7 +203,7 @@ export const PersonalizedHomeFeed: React.FC<PersonalizedHomeFeedProps> = ({ onCo
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-pink-400">
-                ${((popularCoins?.reduce((sum, coin) => sum + (parseFloat(coin.volume24h) || 0), 0) || 0) / 1000000).toFixed(1)}M
+                {formatCurrency(popularCoins?.reduce((sum, coin) => sum + (parseFloat(coin.volume24h) || 0), 0) || 0)}
               </div>
               <div className="text-gray-400">Volume</div>
             </div>
@@ -215,7 +274,7 @@ export const PersonalizedHomeFeed: React.FC<PersonalizedHomeFeedProps> = ({ onCo
                         </span>
                         <span className="flex items-center">
                           <BarChart3 className="w-3 h-3 mr-1" />
-                          ${(parseFloat(coin.volume24h) / 1000).toFixed(1)}K volume
+                          {formatCurrency(parseFloat(coin.volume24h) || 0)} volume
                         </span>
                         <span className={`flex items-center ${parseFloat(coin.priceChange24h.toString()) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                           <TrendingUp className="w-3 h-3 mr-1" />
@@ -288,11 +347,11 @@ export const PersonalizedHomeFeed: React.FC<PersonalizedHomeFeedProps> = ({ onCo
                 </div>
                 <div className="text-center p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
                   <p className="text-sm text-blue-300 mb-1">Volume 24h</p>
-                  <p className="text-2xl font-bold text-blue-400">${(spotlight.coin.volume24h / 1000).toFixed(1)}K</p>
+                  <p className="text-2xl font-bold text-blue-400">{formatCurrency(spotlight.coin.volume24h)}</p>
                 </div>
                 <div className="text-center p-4 bg-purple-500/10 rounded-lg border border-purple-500/20">
                   <p className="text-sm text-purple-300 mb-1">Current Price</p>
-                  <p className="text-2xl font-bold text-purple-400">${spotlight.coin.currentPrice.toFixed(4)}</p>
+                  <p className="text-2xl font-bold text-purple-400">{formatPrice(spotlight.coin.currentPrice)}</p>
                 </div>
               </div>
 
@@ -475,7 +534,7 @@ export const PersonalizedHomeFeed: React.FC<PersonalizedHomeFeedProps> = ({ onCo
                   </div>
                   <div className="p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
                     <p className="text-blue-300 text-xs mb-1">Volume</p>
-                    <p className="font-semibold text-white">${((coin.volume24h || 0) / 1000).toFixed(1)}K</p>
+                    <p className="font-semibold text-white">{formatCurrency(parseFloat(coin.volume24h) || 0)}</p>
                   </div>
                 </div>
               </Card>
@@ -533,7 +592,7 @@ const CoinCard: React.FC<{
         <div className="grid grid-cols-2 gap-3 text-xs text-center mb-4">
           <div className="p-2 bg-purple-500/10 rounded-lg border border-purple-500/20">
             <p className="text-purple-300 mb-1">Price</p>
-            <p className="font-semibold text-white">${(coin.currentPrice || 0).toFixed(4)}</p>
+            <p className="font-semibold text-white">{formatPrice(parseFloat(coin.currentPrice) || 0)}</p>
           </div>
           <div className="p-2 bg-blue-500/10 rounded-lg border border-blue-500/20">
             <p className="text-blue-300 mb-1">Holders</p>
