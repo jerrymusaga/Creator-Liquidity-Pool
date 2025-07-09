@@ -12,7 +12,7 @@ export async function GET(
     const { address } = await params
     const { searchParams } = new URL(request.url)
     const action = searchParams.get('action') || 'view'
-    const amount = searchParams.get('amount') ?? undefined
+    const amount = searchParams.get('amount') || '0.01' // Default amount
     const type = searchParams.get('type') ?? undefined // for success frames
     const txHash = searchParams.get('txHash') ?? undefined
 
@@ -28,17 +28,28 @@ export async function GET(
       return generateErrorImage('Coin not found')
     }
 
-    // Use the correct property for price
-    const price = (coin as any).priceUSD ? parseFloat((coin as any).priceUSD) : 0
-    const priceDisplay = price > 0 ? `$${price.toFixed(6)}` : 'N/A'
-    const marketCap = coin.marketCap ? `$${(parseFloat(coin.marketCap) / 1000000).toFixed(1)}M` : 'N/A'
-    const volume24h = (coin as any).volume24h ? parseFloat((coin as any).volume24h) : 0
+    // Fix price parsing - try multiple possible fields
+    const price = getPrice(coin)
+    const priceDisplay = price > 0 ? formatPrice(price) : 'N/A'
+    
+    // Fix market cap and volume parsing
+    const marketCap = getMarketCap(coin)
+    const volume24h = getVolume24h(coin)
     const holderCount = coin.uniqueHolders || 0
+
+    console.log('💰 Parsed coin data:', {
+      price,
+      priceDisplay,
+      marketCap,
+      volume24h,
+      holderCount,
+      availableFields: Object.keys(coin)
+    })
 
     // Generate different images based on action
     switch (action) {
       case 'buy':
-        return generateBuyImage(coin, priceDisplay, amount ?? undefined)
+        return generateBuyImage(coin, priceDisplay, amount)
       case 'sell':
         return generateSellImage(coin, priceDisplay)
       case 'success':
@@ -53,6 +64,75 @@ export async function GET(
     console.error('Frame image generation error:', error)
     return generateErrorImage('Error generating frame image')
   }
+}
+
+// Helper functions to parse price data from different possible fields
+function getPrice(coin: any): number {
+  // Try multiple possible price fields
+  const priceFields = [
+    'priceUSD', 'currentPrice', 'price', 'priceEth', 'priceInEth',
+    'pricePerToken', 'tokenPrice', 'lastPrice', 'latestPrice'
+  ]
+  
+  for (const field of priceFields) {
+    const value = coin[field]
+    if (value && !isNaN(parseFloat(value))) {
+      console.log(`📊 Using price field: ${field} = ${value}`)
+      return parseFloat(value)
+    }
+  }
+  
+  console.warn('⚠️ No valid price field found in coin data')
+  return 0
+}
+
+function getMarketCap(coin: any): string {
+  const marketCapFields = ['marketCap', 'marketCapUSD', 'totalValue', 'marketCapEth']
+  
+  for (const field of marketCapFields) {
+    const value = coin[field]
+    if (value && !isNaN(parseFloat(value))) {
+      const num = parseFloat(value)
+      return num > 1000000 ? `$${(num / 1000000).toFixed(1)}M` : `$${(num / 1000).toFixed(1)}K`
+    }
+  }
+  
+  return 'N/A'
+}
+
+function getVolume24h(coin: any): number {
+  const volumeFields = ['volume24h', 'dailyVolume', 'volume', 'volumeUSD', 'totalVolume']
+  
+  for (const field of volumeFields) {
+    const value = coin[field]
+    if (value && !isNaN(parseFloat(value))) {
+      return parseFloat(value)
+    }
+  }
+  
+  return 0
+}
+
+function formatPrice(price: number): string {
+  if (price === 0) return '$0'
+  
+  if (price < 0.000001) {
+    return `$${price.toExponential(2)}`
+  }
+  
+  if (price < 0.01) {
+    return `$${price.toFixed(6)}`
+  }
+  
+  if (price < 1) {
+    return `$${price.toFixed(4)}`
+  }
+  
+  if (price < 1000) {
+    return `$${price.toFixed(2)}`
+  }
+  
+  return `$${(price / 1000).toFixed(1)}K`
 }
 
 // Generate main trading image
@@ -254,9 +334,11 @@ function generateTradingImage(coin: any, priceDisplay: string, marketCap: string
   )
 }
 
-// Generate buy action image
-function generateBuyImage(coin: any, priceDisplay: string, amount?: string) {
+// Fixed buy image generation
+function generateBuyImage(coin: any, priceDisplay: string, amount: string) {
   const buyAmount = amount || '0.01'
+  
+  console.log('🟢 Generating buy image with:', { coinSymbol: coin.symbol, priceDisplay, buyAmount })
   
   return new ImageResponse(
     (
