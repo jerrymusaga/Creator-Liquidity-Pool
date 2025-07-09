@@ -1,25 +1,86 @@
+
+
 import { NextRequest, NextResponse } from 'next/server'
-import { tradeCoin, TradeParameters } from '@zoralabs/coins-sdk'
-import { parseEther, createPublicClient, http, createWalletClient } from 'viem'
+import { TradeParameters } from '@zoralabs/coins-sdk'
+import { parseEther, createPublicClient, http } from 'viem'
 import { base } from 'viem/chains'
 
 export async function POST(request: NextRequest) {
   try {
+    // Parse query parameters from the request URL
+    const { searchParams } = new URL(request.url)
+    const coinAddress = searchParams.get('coinAddress')
+    const tradeType = searchParams.get('tradeType') // 'buy' | 'sell'
+    const amount = searchParams.get('amount')
+    const percentage = searchParams.get('percentage') // for sell orders
+    const custom = searchParams.get('custom') === 'true'
+
+    // Parse body for frame message data
     const body = await request.json()
-    const { 
-      coinAddress, 
-      tradeType, // 'buy' | 'sell'
-      amount, 
+    const frameMessage = body.untrustedData || {}
+    const userAddress = frameMessage.address
+    const inputText = frameMessage.inputText
+
+    console.log('🎯 Transaction request:', {
+      coinAddress,
+      tradeType,
+      amount,
+      percentage,
+      custom,
       userAddress,
-      fid 
-    } = body
+      inputText
+    })
 
     // Validate required parameters
-    if (!coinAddress || !tradeType || !amount || !userAddress) {
+    if (!coinAddress || !tradeType || !userAddress) {
       return NextResponse.json(
-        { error: 'Missing required parameters' },
+        { error: 'Missing required parameters: coinAddress, tradeType, userAddress' },
         { status: 400 }
       )
+    }
+
+    // Determine the actual amount to trade
+    let finalAmount: string
+    
+    if (tradeType === 'buy') {
+      if (custom && inputText) {
+        // Use input text for custom amount
+        const parsedAmount = parseFloat(inputText)
+        if (isNaN(parsedAmount) || parsedAmount <= 0) {
+          return NextResponse.json(
+            { error: 'Invalid amount entered. Please enter a valid ETH amount.' },
+            { status: 400 }
+          )
+        }
+        finalAmount = parsedAmount.toString()
+      } else {
+        // Use predefined amount
+        finalAmount = amount || '0.01'
+      }
+    } else {
+      // For sell orders
+      if (percentage) {
+        // Calculate token amount based on percentage of holdings
+        // Note: In a real implementation, you'd fetch the user's token balance
+        // For now, we'll use a placeholder calculation
+        const userBalance = 1000 // This should be fetched from the blockchain
+        const percentageNum = parseFloat(percentage)
+        finalAmount = (userBalance * percentageNum / 100).toString()
+      } else if (custom && inputText) {
+        const parsedAmount = parseFloat(inputText)
+        if (isNaN(parsedAmount) || parsedAmount <= 0) {
+          return NextResponse.json(
+            { error: 'Invalid token amount entered.' },
+            { status: 400 }
+          )
+        }
+        finalAmount = parsedAmount.toString()
+      } else {
+        return NextResponse.json(
+          { error: 'No sell amount specified' },
+          { status: 400 }
+        )
+      }
     }
 
     // Create clients
@@ -30,8 +91,8 @@ export async function POST(request: NextRequest) {
 
     // Parse amount based on trade type
     const amountIn = tradeType === 'buy' 
-      ? parseEther(amount.toString()) // ETH amount for buying
-      : BigInt(amount) // Token amount for selling
+      ? parseEther(finalAmount) // ETH amount for buying
+      : BigInt(Math.floor(parseFloat(finalAmount))) // Token amount for selling
 
     // Set up trade parameters
     const tradeParameters: TradeParameters = tradeType === 'buy' 
@@ -56,11 +117,17 @@ export async function POST(request: NextRequest) {
           sender: userAddress as `0x${string}`,
         }
 
-    // For frames, we need to return transaction data for the user to sign
-    // We'll use createTradeCall to get the transaction data
+    console.log('📋 Trade parameters:', tradeParameters)
+
+    // Create trade call to get transaction data
     const { createTradeCall } = await import('@zoralabs/coins-sdk')
-    
     const quote = await createTradeCall(tradeParameters)
+
+    console.log('✅ Transaction prepared:', {
+      target: quote.call.target,
+      value: quote.call.value.toString(),
+      dataLength: quote.call.data.length
+    })
 
     // Return transaction data for frame to execute
     return NextResponse.json({
@@ -74,10 +141,13 @@ export async function POST(request: NextRequest) {
       },
     })
 
-  } catch (error) {
-    console.error('Trade API error:', error)
+  } catch (error: any) {
+    console.error('❌ Trade API error:', error)
     return NextResponse.json(
-      { error: 'Failed to create trade transaction' },
+      { 
+        error: 'Failed to create trade transaction',
+        details: error.message 
+      },
       { status: 500 }
     )
   }
@@ -93,7 +163,7 @@ export async function GET(request: NextRequest) {
 
     if (!coinAddress || !tradeType || !amount) {
       return NextResponse.json(
-        { error: 'Missing required parameters' },
+        { error: 'Missing required parameters: coinAddress, tradeType, amount' },
         { status: 400 }
       )
     }
@@ -135,10 +205,10 @@ export async function GET(request: NextRequest) {
       }
     })
 
-  } catch (error) {
-    console.error('Quote API error:', error)
+  } catch (error: any) {
+    console.error('❌ Quote API error:', error)
     return NextResponse.json(
-      { error: 'Failed to get trade quote' },
+      { error: 'Failed to get trade quote', details: error.message },
       { status: 500 }
     )
   }

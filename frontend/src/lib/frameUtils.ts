@@ -1,3 +1,5 @@
+// Updated frameUtils.ts with proper transaction button handling
+
 export interface FrameMetadata {
   title: string
   description: string
@@ -12,6 +14,21 @@ export interface FrameButton {
   label: string
   action: 'post' | 'link' | 'tx'
   target?: string
+}
+
+function getBaseUrl(): string {
+  // Explicit environment variable (recommended)
+  if (process.env.NEXT_PUBLIC_BASE_URL) {
+    return process.env.NEXT_PUBLIC_BASE_URL
+  }
+  
+  // Vercel deployment URL
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`
+  }
+  
+  // Local development
+  return 'http://localhost:3000'
 }
 
 export class FrameGenerator {
@@ -34,8 +51,8 @@ export class FrameGenerator {
       image: `${this.baseUrl}/api/frames/coin/${coinAddress}/image`,
       postUrl: `${this.baseUrl}/api/frames/coin/${coinAddress}`,
       buttons: [
-        { label: `🟢 Buy ${priceDisplay}`, action: 'post' },
-        { label: '🔴 Sell', action: 'post' },
+        { label: `🟢 Buy ${priceDisplay}`, action: 'post' }, // Changed to 'post' for frame navigation
+        { label: '🔴 Sell', action: 'post' }, // Changed to 'post' for frame navigation
         { label: '📊 Details', action: 'link', target: `${this.baseUrl}/coin/${coinAddress}` },
         { label: '🔗 Share', action: 'post' }
       ]
@@ -43,7 +60,7 @@ export class FrameGenerator {
   }
 
   /**
-   * Generate frame metadata for buy action
+   * Generate frame metadata for buy action with transaction buttons
    */
   generateBuyFrame(coinAddress: string, coinData: any, amount?: string): FrameMetadata {
     const price = coinData.currentPrice ? parseFloat(coinData.currentPrice) : 0
@@ -56,16 +73,28 @@ export class FrameGenerator {
       postUrl: `${this.baseUrl}/api/frames/coin/${coinAddress}`,
       input: 'Enter ETH amount (e.g., 0.01)',
       buttons: [
-        { label: '🟢 Buy 0.01 ETH', action: 'tx', target: `${this.baseUrl}/api/frames/trade` },
-        { label: '🟢 Buy 0.05 ETH', action: 'tx', target: `${this.baseUrl}/api/frames/trade` },
-        { label: '🟢 Custom Amount', action: 'tx', target: `${this.baseUrl}/api/frames/trade` },
+        { 
+          label: '🟢 Buy 0.01 ETH', 
+          action: 'tx', 
+          target: `${this.baseUrl}/api/frames/trade?coinAddress=${coinAddress}&tradeType=buy&amount=0.01`
+        },
+        { 
+          label: '🟢 Buy 0.05 ETH', 
+          action: 'tx', 
+          target: `${this.baseUrl}/api/frames/trade?coinAddress=${coinAddress}&tradeType=buy&amount=0.05`
+        },
+        { 
+          label: '🟢 Custom Amount', 
+          action: 'tx', 
+          target: `${this.baseUrl}/api/frames/trade?coinAddress=${coinAddress}&tradeType=buy&custom=true`
+        },
         { label: '🔙 Back', action: 'post' }
       ]
     }
   }
 
   /**
-   * Generate frame metadata for sell action
+   * Generate frame metadata for sell action with transaction buttons
    */
   generateSellFrame(coinAddress: string, coinData: any): FrameMetadata {
     return {
@@ -75,9 +104,21 @@ export class FrameGenerator {
       postUrl: `${this.baseUrl}/api/frames/coin/${coinAddress}`,
       input: 'Enter token amount or % to sell',
       buttons: [
-        { label: '🔴 Sell 25%', action: 'tx', target: `${this.baseUrl}/api/frames/trade` },
-        { label: '🔴 Sell 50%', action: 'tx', target: `${this.baseUrl}/api/frames/trade` },
-        { label: '🔴 Sell All', action: 'tx', target: `${this.baseUrl}/api/frames/trade` },
+        { 
+          label: '🔴 Sell 25%', 
+          action: 'tx', 
+          target: `${this.baseUrl}/api/frames/trade?coinAddress=${coinAddress}&tradeType=sell&percentage=25`
+        },
+        { 
+          label: '🔴 Sell 50%', 
+          action: 'tx', 
+          target: `${this.baseUrl}/api/frames/trade?coinAddress=${coinAddress}&tradeType=sell&percentage=50`
+        },
+        { 
+          label: '🔴 Sell All', 
+          action: 'tx', 
+          target: `${this.baseUrl}/api/frames/trade?coinAddress=${coinAddress}&tradeType=sell&percentage=100`
+        },
         { label: '🔙 Back', action: 'post' }
       ]
     }
@@ -111,30 +152,12 @@ export class FrameGenerator {
   }
 
   /**
-   * Generate frame metadata for coin discovery
-   */
-  generateDiscoveryFrame(coins: any[]): FrameMetadata {
-    return {
-      title: 'Discover Creator Coins',
-      description: 'Explore trending creator coins on Base',
-      image: `${this.baseUrl}/api/frames/discovery/image`,
-      postUrl: `${this.baseUrl}/api/frames/discovery`,
-      buttons: [
-        { label: '🔥 Trending', action: 'post' },
-        { label: '📈 Top Gainers', action: 'post' },
-        { label: '🆕 New Coins', action: 'post' },
-        { label: '💎 High Volume', action: 'post' }
-      ]
-    }
-  }
-
-  /**
    * Generate HTML for frame metadata
    */
   generateFrameHTML(metadata: FrameMetadata): string {
     const ogTags = `
-  <meta property="og:title" content="${metadata.title}" />
-  <meta property="og:description" content="${metadata.description}" />
+  <meta property="og:title" content="${this.escapeHtml(metadata.title)}" />
+  <meta property="og:description" content="${this.escapeHtml(metadata.description)}" />
   <meta property="og:image" content="${metadata.image}" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="${this.baseUrl}" />
@@ -145,12 +168,19 @@ export class FrameGenerator {
   <meta property="fc:frame:image" content="${metadata.image}" />
   <meta property="fc:frame:image:aspect_ratio" content="1.91:1" />
   <meta property="fc:frame:post_url" content="${metadata.postUrl}" />
-  ${metadata.input ? `<meta property="fc:frame:input:text" content="${metadata.input}" />` : ''}
-  ${metadata.buttons.map((button, index) => 
-    `<meta property="fc:frame:button:${index + 1}" content="${button.label}" />
-     <meta property="fc:frame:button:${index + 1}:action" content="${button.action}" />
-     ${button.target ? `<meta property="fc:frame:button:${index + 1}:target" content="${button.target}" />` : ''}`
-  ).join('\n  ')}
+  ${metadata.input ? `<meta property="fc:frame:input:text" content="${this.escapeHtml(metadata.input)}" />` : ''}
+  ${metadata.buttons.map((button, index) => {
+    const buttonTags = [
+      `<meta property="fc:frame:button:${index + 1}" content="${this.escapeHtml(button.label)}" />`,
+      `<meta property="fc:frame:button:${index + 1}:action" content="${button.action}" />`
+    ]
+    
+    if (button.target) {
+      buttonTags.push(`<meta property="fc:frame:button:${index + 1}:target" content="${button.target}" />`)
+    }
+    
+    return buttonTags.join('\n  ')
+  }).join('\n  ')}
     `.trim()
 
     return `<!DOCTYPE html>
@@ -158,18 +188,35 @@ export class FrameGenerator {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>${metadata.title}</title>
+  <title>${this.escapeHtml(metadata.title)}</title>
   
   ${ogTags}
   
   ${frameTags}
 </head>
 <body>
-  <h1>${metadata.title}</h1>
-  <p>${metadata.description}</p>
-  <img src="${metadata.image}" alt="${metadata.title}" style="max-width: 100%; height: auto;" />
+  <h1>${this.escapeHtml(metadata.title)}</h1>
+  <p>${this.escapeHtml(metadata.description)}</p>
+  <img src="${metadata.image}" alt="${this.escapeHtml(metadata.title)}" style="max-width: 100%; height: auto;" />
+  
+  <div style="margin-top: 20px;">
+    <p>This is a Farcaster Frame. Interact with it in a Farcaster client to see the buttons and functionality.</p>
+    <p>Frame URL: <code>${metadata.postUrl}</code></p>
+  </div>
 </body>
 </html>`
+  }
+
+  /**
+   * Escape HTML to prevent XSS
+   */
+  private escapeHtml(text: string): string {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;')
   }
 }
 
@@ -196,9 +243,11 @@ export const frameUtils = {
   },
 
   /**
-   * Create frame action response
+   * ❌ DEPRECATED: Don't use this for frame responses anymore
+   * Farcaster expects HTML, not JSON
    */
   createFrameResponse(frameUrl: string, type: 'frame' | 'message' = 'frame') {
+    console.warn('⚠️  createFrameResponse is deprecated. Return HTML frames instead!')
     return {
       type,
       frameUrl
@@ -206,7 +255,7 @@ export const frameUtils = {
   },
 
   /**
-   * Create transaction response for frame
+   * Create transaction response for frame transaction buttons
    */
   createTransactionResponse(
     chainId: string,
@@ -226,19 +275,10 @@ export const frameUtils = {
   },
 
   /**
-   * Validate frame signature (for production use)
-   */
-  async validateFrameSignature(messageBytes: string): Promise<boolean> {
-    // In production, you'd validate the frame signature here
-    // This would involve verifying the message was signed by Farcaster
-    return true
-  },
-
-  /**
    * Generate shareable frame URL
    */
   generateShareableFrameUrl(coinAddress: string, baseUrl?: string): string {
-    const url = baseUrl || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    const url = baseUrl || getBaseUrl()
     return `${url}/api/frames/coin/${coinAddress}`
   },
 
@@ -250,22 +290,6 @@ export const frameUtils = {
     const encodedText = text ? encodeURIComponent(text) : ''
     return `https://warpcast.com/~/compose?text=${encodedText}&embeds[]=${encodedUrl}`
   }
-}
-
-
-function getBaseUrl(): string {
-  // Explicit environment variable 
-  if (process.env.NEXT_PUBLIC_BASE_URL) {
-    return process.env.NEXT_PUBLIC_BASE_URL
-  }
-  
-  // Vercel deployment URL
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`
-  }
-  
-  // Local development
-  return 'http://localhost:3000'
 }
 
 // Export singleton instance
