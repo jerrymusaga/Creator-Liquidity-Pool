@@ -2,6 +2,45 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCoin } from '@zoralabs/coins-sdk'
 import { frameGenerator, frameUtils } from '@/lib/frameUtils'
 
+// Add GET handler for initial frame loading
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ address: string }> }
+) {
+  try {
+    const { address } = await params
+
+    console.log('🎯 Frame GET received for address:', address)
+
+    // Get coin data
+    const coinData = await getCoin({ 
+      address: address as `0x${string}`
+    })
+
+    const coin = coinData?.data?.zora20Token
+    if (!coin) {
+      console.error('❌ Coin not found:', address)
+      return createErrorFrame('Coin not found')
+    }
+
+    console.log('✅ Coin data loaded:', coin.symbol, coin.name)
+
+    // Generate initial trading frame
+    const frameMetadata = frameGenerator.generateTradingFrame(address, coin)
+    const html = frameGenerator.generateFrameHTML(frameMetadata)
+    
+    return new NextResponse(html, {
+      headers: {
+        'Content-Type': 'text/html',
+        'Cache-Control': 'public, max-age=60', // Cache for 1 minute
+      },
+    })
+  } catch (error) {
+    console.error('❌ Frame GET error:', error)
+    return createErrorFrame('Error loading frame')
+  }
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ address: string }> }
@@ -42,7 +81,7 @@ export async function POST(
         return handleViewAction(address, coin)
     }
   } catch (error) {
-    console.error('Frame POST error:', error)
+    console.error('❌ Frame POST error:', error)
     return createErrorFrame('Error processing frame action')
   }
 }
@@ -82,7 +121,7 @@ async function handleDetailsAction(address: string, coin: any) {
   console.log('📊 Details action triggered:', { address })
   
   // For link buttons, return a redirect
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vibestream-vert.vercel.app'
   const detailsUrl = `${baseUrl}/coin/${address}`
   
   return NextResponse.redirect(detailsUrl, 302)
@@ -96,11 +135,11 @@ async function handleShareAction(address: string, coin: any) {
   const frameMetadata = {
     title: `Shared ${coin.symbol}!`,
     description: `You shared ${coin.name} creator coin`,
-    image: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/frames/coin/${address}/image?action=shared`,
-    postUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/frames/coin/${address}`,
+    image: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://vibestream-vert.vercel.app'}/api/frames/coin/${address}/image?action=shared`,
+    postUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://vibestream-vert.vercel.app'}/api/frames/coin/${address}`,
     buttons: [
       { label: '🔙 Back to Trading', action: 'post' as const },
-      { label: '📊 View Details', action: 'link' as const, target: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/coin/${address}` },
+      { label: '📊 View Details', action: 'link' as const, target: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://vibestream-vert.vercel.app'}/coin/${address}` },
       { label: '🔗 Copy Link', action: 'post' as const },
       { label: '🚀 Trade More', action: 'post' as const }
     ]
@@ -132,14 +171,16 @@ async function handleViewAction(address: string, coin: any) {
 
 // Helper function for error frames
 function createErrorFrame(errorMessage: string) {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vibestream-vert.vercel.app'
+  
   const frameMetadata = {
     title: 'Error',
     description: errorMessage,
-    image: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/frames/error/image?message=${encodeURIComponent(errorMessage)}`,
-    postUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/frames/discovery`,
+    image: `${baseUrl}/api/frames/error/image?message=${encodeURIComponent(errorMessage)}`,
+    postUrl: `${baseUrl}/api/frames/discovery`,
     buttons: [
       { label: '🔙 Go Back', action: 'post' as const },
-      { label: '🏠 Home', action: 'link' as const, target: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000' }
+      { label: '🏠 Home', action: 'link' as const, target: baseUrl }
     ]
   }
   

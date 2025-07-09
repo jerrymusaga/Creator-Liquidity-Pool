@@ -1,4 +1,4 @@
-// Updated frameUtils.ts with proper transaction button handling
+// Updated frameUtils.ts with proper transaction button handling and Farcaster miniapp support
 
 export interface FrameMetadata {
   title: string
@@ -25,6 +25,16 @@ function getBaseUrl(): string {
   // Vercel deployment URL
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`
+  }
+  
+  // Farcaster miniapp URL 
+  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+    return 'https://vibestream-vert.vercel.app'
+  }
+  
+  // Production fallback
+  if (typeof window !== 'undefined' && window.location.hostname.includes('vibestream')) {
+    return 'https://vibestream-vert.vercel.app'
   }
   
   // Local development
@@ -152,7 +162,7 @@ export class FrameGenerator {
   }
 
   /**
-   * Generate HTML for frame metadata
+   * Generate HTML for frame metadata with enhanced styling for Farcaster miniapp
    */
   generateFrameHTML(metadata: FrameMetadata): string {
     const ogTags = `
@@ -183,25 +193,129 @@ export class FrameGenerator {
   }).join('\n  ')}
     `.trim()
 
+    // Add CSP headers for Farcaster miniapp compatibility
+    const cspMeta = `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">`
+
     return `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  ${cspMeta}
   <title>${this.escapeHtml(metadata.title)}</title>
   
   ${ogTags}
   
   ${frameTags}
+  
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .frame-container {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 500px;
+      width: 100%;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    .frame-image {
+      max-width: 100%;
+      height: auto;
+      border-radius: 12px;
+      margin: 16px 0;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    }
+    .frame-info {
+      margin-top: 16px;
+      padding: 16px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .frame-url {
+      word-break: break-all;
+      background: rgba(255,255,255,0.1);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 12px;
+      margin: 8px 0;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+      text-align: left;
+    }
+    .feature-item {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 12px;
+    }
+    .feature-title {
+      font-weight: bold;
+      margin-bottom: 4px;
+      color: #FFD700;
+    }
+    @media (max-width: 480px) {
+      body { padding: 10px; }
+      .frame-container { padding: 16px; }
+      .features-grid { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
-  <h1>${this.escapeHtml(metadata.title)}</h1>
-  <p>${this.escapeHtml(metadata.description)}</p>
-  <img src="${metadata.image}" alt="${this.escapeHtml(metadata.title)}" style="max-width: 100%; height: auto;" />
-  
-  <div style="margin-top: 20px;">
-    <p>This is a Farcaster Frame. Interact with it in a Farcaster client to see the buttons and functionality.</p>
-    <p>Frame URL: <code>${metadata.postUrl}</code></p>
+  <div class="frame-container">
+    <h1>${this.escapeHtml(metadata.title)}</h1>
+    <p>${this.escapeHtml(metadata.description)}</p>
+    <img src="${metadata.image}" alt="${this.escapeHtml(metadata.title)}" class="frame-image" />
+    
+    <div class="frame-info">
+      <p><strong>🎯 This is a Farcaster Frame</strong></p>
+      <p>Interact with it in Farcaster or Warpcast to see the trading buttons and functionality.</p>
+      
+      <div class="frame-url">${metadata.postUrl}</div>
+      
+      <div class="features-grid">
+        <div class="feature-item">
+          <div class="feature-title">⚡ One-Click Trading</div>
+          <div>No app switching required</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-title">📊 Live Data</div>
+          <div>Real-time price updates</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-title">💰 V4 Rewards</div>
+          <div>Automatic creator earnings</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-title">🔄 Seamless UX</div>
+          <div>Context preserved</div>
+        </div>
+      </div>
+      
+      <p style="margin-top: 16px; font-size: 12px; opacity: 0.8;">
+        🚀 Powered by VibeStream • Trade Creator Coins directly in Farcaster
+      </p>
+    </div>
   </div>
 </body>
 </html>`
@@ -289,6 +403,18 @@ export const frameUtils = {
     const encodedUrl = encodeURIComponent(frameUrl)
     const encodedText = text ? encodeURIComponent(text) : ''
     return `https://warpcast.com/~/compose?text=${encodedText}&embeds[]=${encodedUrl}`
+  },
+
+  /**
+   * Validate frame URL format
+   */
+  validateFrameUrl(url: string): boolean {
+    try {
+      const parsedUrl = new URL(url)
+      return parsedUrl.pathname.includes('/api/frames/') && parsedUrl.protocol === 'https:'
+    } catch {
+      return false
+    }
   }
 }
 

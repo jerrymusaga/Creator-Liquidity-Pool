@@ -3,14 +3,14 @@ import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { 
   TrendingUp, TrendingDown, BarChart3, Zap, Users, Clock,
-  Filter, ArrowUpRight, Crown, Target, Flame, Share, Cast,
+  Filter, ArrowUpRight, Crown, Target, Flame, Eye,
   Sparkles, ExternalLink
 } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { EnhancedShareButton } from '@/components/ui/EnhancedShareButton'
 import { useTopVolumeCoins, useTopGainerCoins, useMostValuableCoins } from '@/hooks/useZoraCoins'
 import { useWallet } from '@/hooks/useWallet'
-import { shareCoinsAsFrame } from '@/lib/universalFrameShare'
 
 interface EnhancedTrendingFeedProps {
   onCoinSelect?: (coinAddress: string) => void
@@ -208,14 +208,13 @@ export const EnhancedTrendingFeed: React.FC<EnhancedTrendingFeedProps> = ({ onCo
   )
 }
 
-// Individual Trending Coin Card
+// Individual Trending Coin Card with Enhanced Share Button
 const TrendingCoinCard: React.FC<{
   coin: any
   rank: number
   onSelect?: (address: string) => void
   filterType: TrendingFilter
 }> = ({ coin, rank, onSelect, filterType }) => {
-  const [isSharing, setIsSharing] = useState(false)
   
   // Use real data only - no mock data
   const volume24h = parseFloat(coin.volume24h) || 0
@@ -266,28 +265,6 @@ const TrendingCoinCard: React.FC<{
   }
 
   const mainMetric = getMainMetric()
-
-  const handleShareAsFrame = async () => {
-    setIsSharing(true)
-    try {
-      const shareMessage = getRankBasedShareMessage(rank, coin, filterType)
-      await shareCoinsAsFrame(coin, shareMessage)
-    } catch (error) {
-      console.error('Share failed:', error)
-    } finally {
-      setIsSharing(false)
-    }
-  }
-
-  const getRankBasedShareMessage = (rank: number, coin: any, filterType: TrendingFilter) => {
-    const messages = {
-      volume: `🔥 #${rank} trending by volume: ${coin.symbol} is seeing massive trading action!`,
-      gainers: `🚀 #${rank} top gainer: ${coin.symbol} is pumping hard! Don't miss the momentum`,
-      market_cap: `💎 #${rank} by market cap: ${coin.symbol} - established creator coin with solid value`,
-      activity: `⚡ #${rank} most active: ${coin.symbol} has an incredibly engaged community!`
-    }
-    return messages[filterType] || `🎯 Check out ${coin.symbol} - trending #${rank} creator coin!`
-  }
 
   return (
     <motion.div
@@ -360,6 +337,7 @@ const TrendingCoinCard: React.FC<{
               variant="outline"
               className="min-w-[80px]"
             >
+              <Eye className="w-3 h-3 mr-1" />
               View
             </Button>
             <Button
@@ -372,7 +350,7 @@ const TrendingCoinCard: React.FC<{
           </div>
         </div>
 
-        {/* Trending indicator and Frame Share Button */}
+        {/* Trending indicator and Enhanced Frame Share Button */}
         <div className="mt-4 pt-4 border-t border-gray-700">
           <div className="flex items-center justify-between">
             {/* Trending Info */}
@@ -391,52 +369,15 @@ const TrendingCoinCard: React.FC<{
               </span>
             </div>
 
-            {/* Beautiful Frame Share Button */}
-            <motion.button
-              onClick={handleShareAsFrame}
-              disabled={isSharing}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className={`
-                relative overflow-hidden group
-                bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500
-                hover:from-purple-600 hover:via-pink-600 hover:to-orange-600
-                text-white font-medium text-xs px-4 py-2 rounded-full
-                transition-all duration-300 shadow-lg hover:shadow-xl
-                disabled:opacity-50 disabled:cursor-not-allowed
-                ${rank <= 3 ? 'animate-pulse' : ''}
-              `}
-            >
-              {/* Animated background gradient */}
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-gradient-x"></div>
-              
-              {/* Sparkle effect for top 3 */}
-              {rank <= 3 && (
-                <div className="absolute inset-0 opacity-30">
-                  <Sparkles className="w-3 h-3 absolute top-0.5 left-1 animate-ping" />
-                  <Sparkles className="w-2 h-2 absolute bottom-0.5 right-1 animate-ping animation-delay-300" />
-                </div>
-              )}
-              
-              {/* Button content */}
-              <div className="relative flex items-center space-x-1.5 z-10">
-                {isSharing ? (
-                  <>
-                    <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Sharing...</span>
-                  </>
-                ) : (
-                  <>
-                    <Cast className="w-3 h-3" />
-                    <Share className="w-3 h-3" />
-                    <span>Share Frame</span>
-                  </>
-                )}
-              </div>
-              
-              {/* Glow effect */}
-              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-orange-500/20 blur-sm group-hover:blur-md transition-all duration-300 -z-10"></div>
-            </motion.button>
+            {/* Enhanced Frame Share Button */}
+            <EnhancedShareButton
+              coin={coin}
+              rank={rank}
+              size="sm"
+              variant={rank <= 3 ? 'trending' : 'primary'}
+              context="trending"
+              showPreview={false}
+            />
           </div>
         </div>
       </Card>

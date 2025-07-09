@@ -8,12 +8,11 @@ import {
 } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { EnhancedShareButton } from '@/components/ui/EnhancedShareButton'
 import { useNewCoins, useTopGainerCoins, useMostValuableCoins } from '@/hooks/useZoraCoins'
 import { useUserCreatedCoins } from '@/hooks/useZoraProfile'
 import { useWallet } from '@/hooks/useWallet'
 import { useZoraSDK } from '@/hooks/useZoraSDK'
-import { shareCoinsAsFrame } from '@/lib/universalFrameShare'
-import toast from 'react-hot-toast'
 
 interface PersonalizedHomeFeedProps {
   onCoinSelect?: (coinAddress: string) => void
@@ -69,14 +68,14 @@ export const PersonalizedHomeFeed: React.FC<PersonalizedHomeFeedProps> = ({ onCo
 
   const handleBuyCoin = async (coin: any, quickAmount: number = 0.01) => {
     if (!isConnected) {
-      toast.error('Connect wallet to buy coins')
+      console.error('Connect wallet to buy coins')
       return
     }
 
     try {
       const success = await buyCoin(coin.address, quickAmount)
       if (success) {
-        toast.success(`Successfully bought ${coin.symbol}! 🎉`)
+        console.log(`Successfully bought ${coin.symbol}! 🎉`)
       }
     } catch (error) {
       console.error('Buy failed:', error)
@@ -305,14 +304,13 @@ export const PersonalizedHomeFeed: React.FC<PersonalizedHomeFeedProps> = ({ onCo
                   <Eye className="w-4 h-4 mr-2" />
                   Explore Creator
                 </Button>
-                <Button 
-                  onClick={() => shareCoinsAsFrame(spotlight.coin, `🚀 Check out the top performing creator coin: ${spotlight.coin.symbol}!`)}
-                  variant="outline" 
-                  className="border-purple-500 text-purple-400 hover:bg-purple-500/10"
-                >
-                  <Cast className="w-4 h-4 mr-2" />
-                  Share Frame
-                </Button>
+                <EnhancedShareButton 
+                  coin={spotlight.coin}
+                  context="success"
+                  size="md"
+                  variant="secondary"
+                  className="px-6"
+                />
               </div>
             </div>
           </Card>
@@ -404,15 +402,12 @@ export const PersonalizedHomeFeed: React.FC<PersonalizedHomeFeedProps> = ({ onCo
                 )}
                 
                 <div className="mt-3 pt-3 border-t border-green-500/20">
-                  <Button
-                    onClick={() => shareCoinsAsFrame(coin, `🚀 ${coin.symbol} is gaining momentum! +${parseFloat(coin.priceChange24h || '0').toFixed(1)}% today`)}
+                  <EnhancedShareButton
+                    coin={coin}
+                    context="trending"
                     size="sm"
-                    variant="outline"
-                    className="w-full border-green-500/50 text-green-400 hover:bg-green-500/10 text-xs"
-                  >
-                    <Share className="w-3 h-3 mr-1" />
-                    Share
-                  </Button>
+                    variant="minimal"
+                  />
                 </div>
               </Card>
             </motion.div>
@@ -454,15 +449,23 @@ export const PersonalizedHomeFeed: React.FC<PersonalizedHomeFeedProps> = ({ onCo
                     <h3 className="font-semibold text-white">{coin.name || 'Unknown Creator'}</h3>
                     <p className="text-sm text-gray-300">{coin.symbol || 'UNKNOWN'}</p>
                   </div>
-                  <Button 
-                    onClick={() => handleViewCoin(coin)}
-                    size="sm" 
-                    variant="outline"
-                    className="border-blue-500/50 text-blue-400 hover:bg-blue-500/10"
-                  >
-                    <Eye className="w-3 h-3 mr-1" />
-                    View
-                  </Button>
+                  <div className="flex space-x-2">
+                    <Button 
+                      onClick={() => handleViewCoin(coin)}
+                      size="sm" 
+                      variant="outline"
+                      className="border-blue-500/50 text-blue-400 hover:bg-blue-500/10"
+                    >
+                      <Eye className="w-3 h-3 mr-1" />
+                      View
+                    </Button>
+                    <EnhancedShareButton 
+                      coin={coin}
+                      context="discovery"
+                      size="sm"
+                      variant="minimal"
+                    />
+                  </div>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4 text-sm">
@@ -492,22 +495,7 @@ const CoinCard: React.FC<{
   onBuy?: (coin: any, amount: number) => void
   isRisingStar?: boolean
 }> = ({ coin, index, onSelect, onBuy, isRisingStar }) => {
-  const [isSharing, setIsSharing] = useState(false)
   
-  const handleShare = async () => {
-    setIsSharing(true)
-    try {
-      const message = isRisingStar 
-        ? `🌟 Rising star alert! ${coin.symbol} is gaining traction fast`
-        : `💎 Check out ${coin.symbol} - trending creator coin with potential!`
-      await shareCoinsAsFrame(coin, message)
-    } catch (error) {
-      console.error('Share failed:', error)
-    } finally {
-      setIsSharing(false)
-    }
-  }
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -573,25 +561,14 @@ const CoinCard: React.FC<{
           </Button>
         </div>
 
-        {/* Real engagement metrics */}
+        {/* Enhanced frame share at bottom */}
         <div className="flex items-center justify-center pt-3 border-t border-gray-700">
-          <button 
-            onClick={handleShare}
-            disabled={isSharing}
-            className="flex items-center text-xs text-gray-400 hover:text-purple-400 transition-colors disabled:opacity-50"
-          >
-            {isSharing ? (
-              <>
-                <div className="w-3 h-3 border border-purple-400 border-t-transparent rounded-full animate-spin mr-1"></div>
-                Sharing...
-              </>
-            ) : (
-              <>
-                <Share className="w-3 h-3 mr-1" />
-                Share Frame
-              </>
-            )}
-          </button>
+          <EnhancedShareButton 
+            coin={coin}
+            context={isRisingStar ? 'discovery' : 'custom'}
+            size="sm"
+            variant="minimal"
+          />
         </div>
       </Card>
     </motion.div>
