@@ -272,6 +272,186 @@ export async function POST(request: NextRequest) {
 }
 ```
 
+# Frame Interaction Flow
+
+## Step 1: Initial Frame Display
+When someone sees the shared frame in Farcaster:
+
+**Frame Image Shows:**
+```
+┌─────────────────────────────────────┐
+│  🪙 CREATOR COIN                    │
+│     "Creator Token"                 │
+│                                     │
+│        💰 $0.004567                 │
+│                                     │
+│  👥 234 holders  📊 $12.4K volume   │
+│                                     │
+│  🚀 Powered by VibeStream • Base    │
+└─────────────────────────────────────┘
+```
+
+**Interactive Buttons:**
+```
+[🟢 Buy $0.004567] [🔴 Sell] [📊 Details] [🔗 Share]
+```
+
+---
+
+## Step 2A: User Clicks "🟢 Buy" Button
+
+**New Frame Appears:**
+```
+┌─────────────────────────────────────┐
+│  🟢 BUY CREATOR COIN                │
+│     Purchase with ETH               │
+│                                     │
+│     💰 Current Price: $0.004567     │
+│     📈 Buying 0.01 ETH worth        │
+│                                     │
+│  [Input: Enter ETH amount]          │
+└─────────────────────────────────────┘
+```
+
+**Transaction Buttons:**
+```
+[🟢 Buy 0.01 ETH] [🟢 Buy 0.05 ETH] [🟢 Custom] [🔙 Back]
+```
+
+**What Happens When User Clicks a Buy Button:**
+1. **Wallet Connection**: Frame prompts user to connect wallet
+2. **Transaction Preview**: Shows exactly what they'll receive
+3. **One-Click Execution**: Transaction executes directly in frame
+4. **Success Confirmation**: Shows transaction hash and results
+
+---
+
+## Step 2B: User Clicks "🔴 Sell" Button
+
+**New Frame Appears:**
+```
+┌─────────────────────────────────────┐
+│  🔴 SELL CREATOR TOKENS             │
+│     Convert to ETH                  │
+│                                     │
+│     💰 Your Balance: 1,000 tokens   │
+│     📉 Current Price: $0.004567     │
+│                                     │
+│  [Input: Amount or % to sell]       │
+└─────────────────────────────────────┘
+```
+
+**Transaction Buttons:**
+```
+[🔴 Sell 25%] [🔴 Sell 50%] [🔴 Sell All] [🔙 Back]
+```
+
+---
+
+## Step 2C: User Clicks "📊 Details" Button
+
+**Opens External Link:**
+- Takes user to: `https://vibestream-vert.vercel.app/coin/0x0a3a07a0...`
+- Shows full coin analytics page with:
+  - Price charts
+  - Holder analytics  
+  - Creator profile
+  - Transaction history
+  - Community features
+
+---
+
+## Step 2D: User Clicks "🔗 Share" Button
+
+**New Frame Appears:**
+```
+┌─────────────────────────────────────┐
+│  ✅ SHARED CREATOR COIN!            │
+│     You shared "Creator Token"      │
+│                                     │
+│     🎯 Spread the word about        │
+│        this amazing creator!        │
+│                                     │
+│  📈 More people = Higher value      │
+└─────────────────────────────────────┘
+```
+
+**Action Buttons:**
+```
+[🔙 Back to Trading] [📊 View Details] [🔗 Copy Link] [🚀 Trade More]
+```
+
+---
+
+## Step 3: After Successful Trade
+
+**Success Frame Shows:**
+```
+┌─────────────────────────────────────┐
+│  ✅ TRADE SUCCESSFUL!               │
+│     Bought 2,180 CREATOR tokens     │
+│                                     │
+│     💰 Spent: 0.01 ETH              │
+│     🪙 Received: 2,180 tokens       │
+│     📋 TX: 0x1234...abcd            │
+│                                     │
+│  🚀 Welcome to the Creator Economy! │
+└─────────────────────────────────────┘
+```
+
+**Next Action Buttons:**
+```
+[🔗 View TX] [📊 Coin Details] [🔄 Trade Again] [🔗 Share Success]
+```
+
+---
+
+##  Real-Time Updates
+
+**Dynamic Frame Content:**
+- **Price Updates**: Frame image updates with live price data
+- **Volume Changes**: Shows current 24h trading volume  
+- **Holder Count**: Updates as new people buy the coin
+- **Ranking Changes**: Shows if coin moves up/down in trending
+
+**Auto-Refresh Triggers:**
+- Every 30 seconds for price updates
+- After each successful transaction
+- When user returns to main frame
+
+---
+
+## Key Frame Features
+
+### 🎯 **One-Click Trading**
+- No app switching required
+- Wallet connects directly in frame
+- Transaction executes with single button press
+
+### 📊 **Live Data**
+- Real-time price updates
+- Current holder count
+- 24h volume and changes
+- Trending rank position
+
+### 🔄 **Seamless Navigation**
+- Back buttons return to previous frame
+- Breadcrumb-style navigation
+- Context preserved between actions
+
+### 🚀 **Social Integration**
+- Share successful trades
+- Tag friends in comments
+- Viral growth through frame shares
+
+### 💰 **V4 Rewards**
+- Creator earns 50% of trading fees automatically
+- Platform earns referral fees
+- No manual claiming required
+- Instant reward distribution
+
+---
+
 ### **3. Portfolio Management**
 
 ```typescript
@@ -302,10 +482,9 @@ Automatic reward distribution through Zora V4:
 ### **Fan/Investor Journey**
 
 1. **Discover Creators** - Browse trending, new, and top-gaining coins
-2. **Research & Follow** - View creator profiles and coin metrics
+2. **Research** - View creator profiles and coin metrics
 3. **Trade Coins** - Buy/sell through intuitive interface or frames
 4. **Build Portfolio** - Track holdings and performance
-5. **Engage Socially** - Comment, like, and share
 
 ### **Navigation Structure**
 
