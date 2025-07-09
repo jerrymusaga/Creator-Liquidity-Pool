@@ -1,15 +1,16 @@
-// components/home/EnhancedTrendingFeed.tsx
 'use client'
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { 
   TrendingUp, TrendingDown, BarChart3, Zap, Users, Clock,
-  Filter, ArrowUpRight, ArrowDownLeft, Crown, Target, Flame
+  Filter, ArrowUpRight, Crown, Target, Flame, Share, Cast,
+  Sparkles, ExternalLink
 } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { useTopVolumeCoins, useTopGainerCoins, useMostValuableCoins } from '@/hooks/useZoraCoins'
 import { useWallet } from '@/hooks/useWallet'
+import { shareCoinsAsFrame } from '@/lib/universalFrameShare'
 
 interface EnhancedTrendingFeedProps {
   onCoinSelect?: (coinAddress: string) => void
@@ -32,7 +33,7 @@ export const EnhancedTrendingFeed: React.FC<EnhancedTrendingFeedProps> = ({ onCo
       case 'volume': return volumeCoins || []
       case 'gainers': return gainerCoins || []
       case 'market_cap': return marketCapCoins || []
-      case 'activity': return volumeCoins || [] // Could be different metric
+      case 'activity': return volumeCoins || []
       default: return volumeCoins || []
     }
   }
@@ -70,10 +71,10 @@ export const EnhancedTrendingFeed: React.FC<EnhancedTrendingFeedProps> = ({ onCo
   const coins = getCurrentData()
   const isLoading = getCurrentLoading()
 
-  // Calculate trending stats
+  // Calculate real trending stats (no mock data)
   const totalVolume = coins.reduce((sum: number, coin: any) => sum + (parseFloat(coin.volume24h) || 0), 0)
-  const avgGrowth = coins.length > 0 
-    ? coins.reduce((sum: number, coin: any) => sum + (Math.random() * 50 - 10), 0) / coins.length 
+  const avgPrice = coins.length > 0 
+    ? coins.reduce((sum: number, coin: any) => sum + (parseFloat(coin.currentPrice) || 0), 0) / coins.length 
     : 0
 
   return (
@@ -110,10 +111,10 @@ export const EnhancedTrendingFeed: React.FC<EnhancedTrendingFeedProps> = ({ onCo
             <p className="text-sm text-gray-400">Total Volume</p>
           </div>
           <div className="text-center">
-            <p className={`text-2xl font-bold ${avgGrowth >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-              {avgGrowth >= 0 ? '+' : ''}{avgGrowth.toFixed(1)}%
+            <p className="text-2xl font-bold text-vibe-blue">
+              ${avgPrice.toFixed(4)}
             </p>
-            <p className="text-sm text-gray-400">Avg Growth</p>
+            <p className="text-sm text-gray-400">Avg Price</p>
           </div>
         </div>
       </motion.div>
@@ -214,11 +215,14 @@ const TrendingCoinCard: React.FC<{
   onSelect?: (address: string) => void
   filterType: TrendingFilter
 }> = ({ coin, rank, onSelect, filterType }) => {
-  // Mock some additional data
-  const priceChange = (Math.random() - 0.3) * 100 // -30% to +70%
-  const isPositive = priceChange >= 0
-  const volume24h = parseFloat(coin.volume24h) || Math.random() * 100000
-  const marketCap = volume24h * 50 // Rough estimate
+  const [isSharing, setIsSharing] = useState(false)
+  
+  // Use real data only - no mock data
+  const volume24h = parseFloat(coin.volume24h) || 0
+  const marketCap = parseFloat(coin.marketCap) || 0
+  const currentPrice = parseFloat(coin.currentPrice) || 0
+  const priceChange24h = parseFloat(coin.priceChange24h) || 0
+  const isPositive = priceChange24h >= 0
   
   const getRankBadgeColor = () => {
     if (rank <= 3) return 'bg-gradient-to-r from-yellow-400 to-orange-500'
@@ -230,31 +234,31 @@ const TrendingCoinCard: React.FC<{
     switch (filterType) {
       case 'volume': 
         return {
-          value: `$${(volume24h / 1000).toFixed(0)}K`,
+          value: volume24h > 0 ? `$${(volume24h / 1000).toFixed(0)}K` : 'N/A',
           label: 'Volume 24h',
           color: 'text-vibe-blue'
         }
       case 'gainers':
         return {
-          value: `${isPositive ? '+' : ''}${priceChange.toFixed(1)}%`,
+          value: priceChange24h !== 0 ? `${isPositive ? '+' : ''}${priceChange24h.toFixed(1)}%` : 'N/A',
           label: '24h Change',
           color: isPositive ? 'text-green-400' : 'text-red-400'
         }
       case 'market_cap':
         return {
-          value: `$${(marketCap / 1000000).toFixed(1)}M`,
+          value: marketCap > 0 ? `$${(marketCap / 1000000).toFixed(1)}M` : 'N/A',
           label: 'Market Cap',
           color: 'text-vibe-purple'
         }
       case 'activity':
         return {
-          value: `${coin.holderCount || Math.floor(Math.random() * 500) + 50}`,
+          value: `${coin.holderCount || 0}`,
           label: 'Holders',
           color: 'text-vibe-green'
         }
       default:
         return {
-          value: `$${(volume24h / 1000).toFixed(0)}K`,
+          value: volume24h > 0 ? `$${(volume24h / 1000).toFixed(0)}K` : 'N/A',
           label: 'Volume',
           color: 'text-vibe-blue'
         }
@@ -262,6 +266,28 @@ const TrendingCoinCard: React.FC<{
   }
 
   const mainMetric = getMainMetric()
+
+  const handleShareAsFrame = async () => {
+    setIsSharing(true)
+    try {
+      const shareMessage = getRankBasedShareMessage(rank, coin, filterType)
+      await shareCoinsAsFrame(coin, shareMessage)
+    } catch (error) {
+      console.error('Share failed:', error)
+    } finally {
+      setIsSharing(false)
+    }
+  }
+
+  const getRankBasedShareMessage = (rank: number, coin: any, filterType: TrendingFilter) => {
+    const messages = {
+      volume: `🔥 #${rank} trending by volume: ${coin.symbol} is seeing massive trading action!`,
+      gainers: `🚀 #${rank} top gainer: ${coin.symbol} is pumping hard! Don't miss the momentum`,
+      market_cap: `💎 #${rank} by market cap: ${coin.symbol} - established creator coin with solid value`,
+      activity: `⚡ #${rank} most active: ${coin.symbol} has an incredibly engaged community!`
+    }
+    return messages[filterType] || `🎯 Check out ${coin.symbol} - trending #${rank} creator coin!`
+  }
 
   return (
     <motion.div
@@ -291,25 +317,31 @@ const TrendingCoinCard: React.FC<{
                   <Users className="w-3 h-3 mr-1" />
                   {coin.holderCount || 0} holders
                 </span>
-                <span className="flex items-center">
-                  <Clock className="w-3 h-3 mr-1" />
-                  {Math.floor(Math.random() * 24) + 1}h ago
-                </span>
+                {coin.createdAt && (
+                  <span className="flex items-center">
+                    <Clock className="w-3 h-3 mr-1" />
+                    {new Date(coin.createdAt).toLocaleDateString()}
+                  </span>
+                )}
               </div>
             </div>
           </div>
 
           {/* Price */}
           <div className="text-right">
-            <p className="font-bold text-lg">${(coin.currentPrice || Math.random() * 0.1).toFixed(4)}</p>
-            <div className={`flex items-center text-sm ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
-              {isPositive ? (
-                <TrendingUp className="w-3 h-3 mr-1" />
-              ) : (
-                <TrendingDown className="w-3 h-3 mr-1" />
-              )}
-              {isPositive ? '+' : ''}{priceChange.toFixed(1)}%
-            </div>
+            <p className="font-bold text-lg">
+              {currentPrice > 0 ? `$${currentPrice.toFixed(4)}` : 'N/A'}
+            </p>
+            {priceChange24h !== 0 && (
+              <div className={`flex items-center text-sm ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                {isPositive ? (
+                  <TrendingUp className="w-3 h-3 mr-1" />
+                ) : (
+                  <TrendingDown className="w-3 h-3 mr-1" />
+                )}
+                {isPositive ? '+' : ''}{priceChange24h.toFixed(1)}%
+              </div>
+            )}
           </div>
 
           {/* Main Metric */}
@@ -340,23 +372,73 @@ const TrendingCoinCard: React.FC<{
           </div>
         </div>
 
-        {/* Trending indicator for top coins */}
-        {rank <= 5 && (
-          <div className="mt-3 pt-3 border-t border-gray-700">
-            <div className="flex items-center justify-between text-xs">
-              <span className="flex items-center text-orange-400">
-                <Flame className="w-3 h-3 mr-1" />
-                Trending #{rank}
-              </span>
-              <span className="text-gray-400">
+        {/* Trending indicator and Frame Share Button */}
+        <div className="mt-4 pt-4 border-t border-gray-700">
+          <div className="flex items-center justify-between">
+            {/* Trending Info */}
+            <div className="flex items-center space-x-4">
+              {rank <= 5 && (
+                <span className="flex items-center text-orange-400 text-xs">
+                  <Flame className="w-3 h-3 mr-1" />
+                  Trending #{rank}
+                </span>
+              )}
+              <span className="text-gray-400 text-xs">
                 {filterType === 'volume' && 'High volume activity'}
                 {filterType === 'gainers' && 'Strong price momentum'}
                 {filterType === 'market_cap' && 'Large market presence'}
                 {filterType === 'activity' && 'Active community'}
               </span>
             </div>
+
+            {/* Beautiful Frame Share Button */}
+            <motion.button
+              onClick={handleShareAsFrame}
+              disabled={isSharing}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className={`
+                relative overflow-hidden group
+                bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500
+                hover:from-purple-600 hover:via-pink-600 hover:to-orange-600
+                text-white font-medium text-xs px-4 py-2 rounded-full
+                transition-all duration-300 shadow-lg hover:shadow-xl
+                disabled:opacity-50 disabled:cursor-not-allowed
+                ${rank <= 3 ? 'animate-pulse' : ''}
+              `}
+            >
+              {/* Animated background gradient */}
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-gradient-x"></div>
+              
+              {/* Sparkle effect for top 3 */}
+              {rank <= 3 && (
+                <div className="absolute inset-0 opacity-30">
+                  <Sparkles className="w-3 h-3 absolute top-0.5 left-1 animate-ping" />
+                  <Sparkles className="w-2 h-2 absolute bottom-0.5 right-1 animate-ping animation-delay-300" />
+                </div>
+              )}
+              
+              {/* Button content */}
+              <div className="relative flex items-center space-x-1.5 z-10">
+                {isSharing ? (
+                  <>
+                    <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Sharing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Cast className="w-3 h-3" />
+                    <Share className="w-3 h-3" />
+                    <span>Share Frame</span>
+                  </>
+                )}
+              </div>
+              
+              {/* Glow effect */}
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-orange-500/20 blur-sm group-hover:blur-md transition-all duration-300 -z-10"></div>
+            </motion.button>
           </div>
-        )}
+        </div>
       </Card>
     </motion.div>
   )

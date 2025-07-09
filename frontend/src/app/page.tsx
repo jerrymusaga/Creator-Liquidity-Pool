@@ -1,6 +1,5 @@
 'use client'
 import React, { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { 
   Zap, 
@@ -18,13 +17,11 @@ import {
 } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Navigation } from '@/components/layout/Navigation'
-import { Welcome } from '@/components/onboarding/Welcome'
 import { PersonalizedHomeFeed } from '@/components/home/PersonalizedHomeFeed'
 import { EnhancedTrendingFeed } from '@/components/home/EnhancedTrendingFeed'
 import { IPFSCoinCreation } from '@/components/creator/IPFSCoinCreation'
 import { WalletPage } from '@/components/wallet/WalletPage'
 import { ProfilePage } from '@/components/profile/ProfilePage'
-import { useStore } from '@/stores/useStore'
 import { useDashboardCoins } from '@/hooks/useZoraCoins'
 import { useWallet } from '@/hooks/useWallet'
 import { Button } from '@/components/ui/Button'
@@ -35,7 +32,6 @@ export default function Home() {
   const { isConnected, connectWallet } = useWallet()
   const { topVolume, newCoins } = useDashboardCoins()
   const [activeTab, setActiveTab] = useState('home')
-  const [isOnboardingComplete, setIsOnboardingComplete] = useState(true)
   const [showLandingPage, setShowLandingPage] = useState(true)
 
   // Load Zora data on mount
@@ -44,10 +40,6 @@ export default function Home() {
       console.log('Zora data loading...', { topVolume: topVolume.data, newCoins: newCoins.data })
     }
   }, [isConnected, topVolume.data, newCoins.data])
-
-  const handleOnboardingComplete = () => {
-    setIsOnboardingComplete(true)
-  }
 
   const handleCoinSelect = (coinAddress: string) => {
     toast.success(`Exploring coin ${coinAddress}!`, {
@@ -80,10 +72,6 @@ export default function Home() {
       // If user is not connected, connect wallet first
       await connectWallet()
     }
-  }
-
-  if (!isOnboardingComplete) {
-    return <Welcome onComplete={handleOnboardingComplete} />
   }
 
   // Show landing page if user is not connected
