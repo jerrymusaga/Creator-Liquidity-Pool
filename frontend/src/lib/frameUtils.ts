@@ -18,7 +18,7 @@ export class FrameGenerator {
   private baseUrl: string
 
   constructor(baseUrl?: string) {
-    this.baseUrl = baseUrl || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    this.baseUrl = baseUrl || getBaseUrl()
   }
 
   /**
@@ -250,6 +250,22 @@ export const frameUtils = {
     const encodedText = text ? encodeURIComponent(text) : ''
     return `https://warpcast.com/~/compose?text=${encodedText}&embeds[]=${encodedUrl}`
   }
+}
+
+
+function getBaseUrl(): string {
+  // Explicit environment variable 
+  if (process.env.NEXT_PUBLIC_BASE_URL) {
+    return process.env.NEXT_PUBLIC_BASE_URL
+  }
+  
+  // Vercel deployment URL
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`
+  }
+  
+  // Local development
+  return 'http://localhost:3000'
 }
 
 // Export singleton instance
